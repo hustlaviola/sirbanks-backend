@@ -1,4 +1,4 @@
-import { body, query } from 'express-validator';
+import { body } from 'express-validator';
 
 const validator = method => {
     switch (method) {
