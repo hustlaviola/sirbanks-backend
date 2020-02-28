@@ -4,7 +4,7 @@ import UserService from '../services/UserService';
 import AuthService from '../services/AuthService';
 import response from '../utils/response';
 import messages from '../utils/messages';
-import APIError from '../utils/errorHandler/APIError';
+import APIError from '../utils/errorHandler/ApiError';
 import sendMail from '../utils/sendMail';
 
 /**

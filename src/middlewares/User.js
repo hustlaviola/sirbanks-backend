@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import UserService from '../services/UserService';
 import Helper from '../utils/helpers/Helper';
 import messages from '../utils/messages';
-import APIError from '../utils/errorHandler/APIError';
+import APIError from '../utils/errorHandler/ApiError';
 
 /**
  * @class

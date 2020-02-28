@@ -1,6 +1,6 @@
 import { validationResult } from 'express-validator';
 import httpStatus from 'http-status';
-import APIError from '../utils/errorHandler/APIError';
+import APIError from '../utils/errorHandler/ApiError';
 
 const validate = async (req, res, next) => {
     // Finds validation errors in the request and wraps them in an array
