@@ -9,7 +9,8 @@ const messages = {
     notVerified: 'Please verify your email address',
     noVerificationToken: 'Link not found or expired',
     phoneCode: 'Code sent to the provided phone number',
-    phoneVerified: 'Phone number verified successfully'
+    phoneVerified: 'Phone number verified successfully',
+    invalidCred: 'Invalid credentials'
 };
 
 export default messages;

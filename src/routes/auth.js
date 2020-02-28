@@ -7,12 +7,16 @@ const router = express.Router();
 
 router.get('/email-verification/:token',
     AuthValidator.validateParamToken,
-    AuthController.verifyEmailOrRenderReset);
+    AuthController.verifyEmail);
 
 router.get('/phone-verification',
     AuthController.sendPhoneCode);
 
 router.get('/verify-phone',
     AuthController.verifyPhone);
+
+router.post('/login',
+    AuthValidator.validateLogin,
+    AuthController.login);
 
 export default router;

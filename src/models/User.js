@@ -32,10 +32,6 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
-    isPhoneVerified: {
-        type: Boolean,
-        default: false
-    },
     gender: {
         type: String,
         enum: ['male', 'female', 'prefer not to say']

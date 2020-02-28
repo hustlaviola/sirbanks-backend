@@ -1,7 +1,8 @@
 import httpStatus from 'http-status';
 
+import Helper from '../utils/helpers/Helper';
 import messages from '../utils/messages';
-import APIError from '../utils/errorHandler/APIError';
+import APIError from '../utils/errorHandler/ApiError';
 import AuthService from '../services/AuthService';
 import UserService from '../services/UserService';
 
@@ -38,6 +39,43 @@ export default class Auth {
             if (user.isEmailVerified) {
                 return next(new APIError(
                     messages.alreadyVerified, httpStatus.CONFLICT, true
+                ));
+            }
+            req.user = user;
+            return next();
+        } catch (error) {
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateLogin
+     * @description Validates Login with email and password
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async validateLogin(req, res, next) {
+        try {
+            const { email, password } = req.body;
+            const user = await UserService.findByEmail(email);
+            if (!user) {
+                return next(new APIError(
+                    messages.invalidCred, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const match = await Helper.comparePassword(password, user.password);
+            if (!match) {
+                return next(new APIError(
+                    messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            if (!user.isEmailVerified) {
+                return next(new APIError(
+                    messages.notVerified, httpStatus.UNAUTHORIZED, true
                 ));
             }
             req.user = user;
