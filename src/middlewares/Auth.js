@@ -25,23 +25,25 @@ export default class Auth {
     static async validateParamToken(req, res, next) {
         try {
             const token = await AuthService.checkToken(req.params.token);
+            const { role } = req.params;
             if (!token) {
                 return next(new APIError(
                     messages.noVerificationToken, httpStatus.NOT_FOUND, true
                 ));
             }
-            const user = await UserService.findById(token.userId);
+            const user = await UserService.findById(token.userId, role);
             if (!user) {
                 return next(new APIError(
                     messages.userNotFound, httpStatus.NOT_FOUND, true
                 ));
             }
-            if (user.isEmailVerified) {
+            if (req.url.includes('verification') && user.isEmailVerified) {
                 return next(new APIError(
                     messages.alreadyVerified, httpStatus.CONFLICT, true
                 ));
             }
             req.user = user;
+            req.token = token;
             return next();
         } catch (error) {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
@@ -61,10 +63,11 @@ export default class Auth {
     static async validateLogin(req, res, next) {
         try {
             const { email, password } = req.body;
-            const user = await UserService.findByEmail(email);
+            const { role } = req.params;
+            const user = await UserService.findByEmailnRole(email, role);
             if (!user) {
                 return next(new APIError(
-                    messages.invalidCred, httpStatus.NOT_FOUND, true
+                    messages.invalidCred, httpStatus.UNAUTHORIZED, true
                 ));
             }
             const match = await Helper.comparePassword(password, user.password);
@@ -79,6 +82,38 @@ export default class Auth {
                 ));
             }
             req.user = user;
+            return next();
+        } catch (error) {
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateEmailVerification
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async validateEmailVerification(req, res, next) {
+        try {
+            const { role } = req.params;
+            const user = await UserService.findByEmailnRole(req.body.email, role);
+            if (!user) {
+                return next(new APIError(
+                    messages.noUserEmail, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (req.url.includes('resend') && user.isEmailVerified) {
+                return next(new APIError(
+                    messages.alreadyVerified, httpStatus.CONFLICT, true
+                ));
+            }
+            req.user = user;
+            req.role = role;
             return next();
         } catch (error) {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));

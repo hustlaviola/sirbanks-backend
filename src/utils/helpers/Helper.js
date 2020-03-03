@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import path from 'path';
 
 /**
  * @class Helper
@@ -43,5 +44,32 @@ export default class Helper {
      */
     static async comparePassword(password, hashPassword) {
         return bcrypt.compare(password, hashPassword);
+    }
+
+    /**
+     * @method checkImageType
+     * @description Check if image is valid
+     * @static
+     * @param {object} image
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static async checkImageType(image) {
+        const extensions = ['.png', '.jpeg', '.jpg'];
+        const ext = path.extname(image.name).toLowerCase();
+        return extensions.includes(ext);
+    }
+
+    /**
+     * @method checkImage
+     * @description Check if image is valid
+     * @static
+     * @param {object} files - Request files
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static async checkImage(files) {
+        if (!files || !Object.prototype.hasOwnProperty.call(files, 'avatar')) return false;
+        return true;
     }
 }

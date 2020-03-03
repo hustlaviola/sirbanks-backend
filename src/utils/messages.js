@@ -10,7 +10,13 @@ const messages = {
     noVerificationToken: 'Link not found or expired',
     phoneCode: 'Code sent to the provided phone number',
     phoneVerified: 'Phone number verified successfully',
-    invalidCred: 'Invalid credentials'
+    invalidCred: 'Invalid credentials',
+    noUserEmail: 'No user associated with this email',
+    emailVerification: 'Email verification link has been sent to your email',
+    passwordReset: 'Password reset link has been sent to your email',
+    passwordUpdateSuccess: 'Password updated successfully',
+    noAvatarInput: 'No avatar input',
+    noSupportType: 'File type not supported'
 };
 
 export default messages;

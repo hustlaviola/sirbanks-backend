@@ -6,6 +6,7 @@ import cors from 'cors';
 import httpStatus from 'http-status';
 import trimmer from 'trim-request-body';
 import expressWinston from 'express-winston';
+import fileupload from 'express-fileupload';
 
 import connectDB from './config/db';
 import messages from './utils/messages';
@@ -28,6 +29,9 @@ app.use(express.json());
 app.use(compression());
 
 app.use(express.urlencoded({ extended: true }));
+app.use(fileupload({
+    useTempFiles: true
+}));
 
 // secure apps by setting various HTTP headers
 app.use(helmet());
@@ -37,6 +41,8 @@ app.use(cors());
 
 // Trim request body
 app.use(trimmer);
+
+app.set('view engine', 'ejs');
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/auth', authRouter);

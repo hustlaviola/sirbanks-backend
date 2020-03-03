@@ -26,11 +26,12 @@ export default class UserController {
     static async register(req, res, next) {
         try {
             let { user } = req;
-            user = await UserService.createUser(user);
+            const { role } = req.params;
+            user = await UserService.createUser(user, role);
             const { firstName, email } = user;
 
             const token = await AuthService.regToken(user.id);
-            const link = `http://${req.headers.host}/api/v1/auth/email-verification/${token.token}`;
+            const link = `http://${req.headers.host}/api/v1/auth/email_verification/${role}/${token.token}`;
             const action = {
                 instructions: 'Please click the button below to verify your email address',
                 text: 'Verify',

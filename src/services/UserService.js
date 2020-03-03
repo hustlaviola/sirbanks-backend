@@ -1,4 +1,5 @@
-import User from '../models/User';
+import Rider from '../models/Rider';
+import Driver from '../models/Driver';
 
 /**
  * @class
@@ -10,12 +11,15 @@ export default class UserService {
      * @method findByEmail
      * @description Check if email already exists
      * @static
-     * @param {object} email - Email being queried
+     * @param {string} email - Email being queried
+     * @param {string} role
      * @returns {object} JSON response
      * @memberof UserService
      */
-    static findByEmail(email) {
-        return User.findOne({ email });
+    static async findByEmail(email) {
+        const exist = await Rider.findOne({ email });
+        if (exist) return exist;
+        return Driver.findOne({ email });
     }
 
     /**
@@ -26,8 +30,26 @@ export default class UserService {
      * @returns {object} JSON response
      * @memberof UserService
      */
-    static findByPhone(phone) {
-        return User.findOne({ phone });
+    static async findByPhone(phone) {
+        const exist = await Rider.findOne({ phone });
+        if (exist) return exist;
+        return Driver.findOne({ phone });
+    }
+
+    /**
+     * @method findByEmailnRole
+     * @description Check user by email and role
+     * @static
+     * @param {string} email - Email being queried
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async findByEmailnRole(email, role) {
+        if (role === 'rider') {
+            return Rider.findOne({ email });
+        }
+        return Driver.findOne({ email });
     }
 
     /**
@@ -35,22 +57,28 @@ export default class UserService {
      * @description Creates a new User
      * @static
      * @param {object} user - User object to be created
+     * @param {string} role - Rider or Driver
      * @returns {object} JSON response
      * @memberof UserService
      */
-    static createUser(user) {
-        return User.create(user);
+    static createUser(user, role) {
+        if (role === 'rider') return Rider.create(user);
+        return Driver.create(user);
     }
 
     /**
      * @method findById
      * @description Find a user by Id
      * @static
-     * @param {object} id - User id
+     * @param {string} id - User id
+     * @param {string} role - Rider or Driver
      * @returns {object} JSON response
      * @memberof LionService
      */
-    static findById(id) {
-        return User.findById(id).select('-password');
+    static findById(id, role) {
+        if (role === 'rider') {
+            return Rider.findById(id).select('-password');
+        }
+        return Driver.findById(id).select('-password');
     }
 }
