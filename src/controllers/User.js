@@ -30,7 +30,7 @@ export default class UserController {
             const { firstName, email } = user;
 
             const token = await AuthService.regToken(user.id);
-            const link = `http://${req.headers.host}/api/v1/auth/email-verification/${token.token}`;
+            const link = `http://${req.headers.host}/api/v1/auth/email_verification/${token.token}`;
             const action = {
                 instructions: 'Please click the button below to verify your email address',
                 text: 'Verify',

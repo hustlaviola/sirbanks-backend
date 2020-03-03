@@ -50,7 +50,8 @@ export default class UserValidator {
                 email,
                 phone,
                 role,
-                password
+                password,
+                avatar: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
             };
             req.user = user;
             return next();

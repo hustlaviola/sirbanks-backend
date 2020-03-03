@@ -38,6 +38,8 @@ app.use(cors());
 // Trim request body
 app.use(trimmer);
 
+app.set('view engine', 'ejs');
+
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/auth', authRouter);
 

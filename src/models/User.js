@@ -57,55 +57,48 @@ const UserSchema = new Schema({
         }
     },
     isOnline: {
-        type: Boolean,
-        default: false
+        type: Boolean
     },
     isAvailable: {
-        type: Boolean,
-        default: false
+        type: Boolean
     },
     carDetails: {
         manufacturer: {
-            type: String,
-            default: null
+            type: String
         },
         model: {
-            type: String,
-            default: null
+            type: String
         },
         numberPlate: {
-            type: String, default: null
+            type: String
         },
         colour: {
-            type: String,
-            default: null
+            type: String
         }
     },
     insuranceUrl: {
-        type: String,
-        default: null
+        type: String
     },
     vechilePaperUrl: {
-        type: String,
-        default: null
+        type: String
     },
     licenceUrl: {
-        type: String,
-        default: null
+        type: String
     },
     licenceDetails: {
         licenceNo: {
-            type: String,
-            default: null
+            type: String
         },
         issueDate: {
-            type: Date,
-            default: null
+            type: Date
         },
         expDate: {
-            type: Date,
-            default: null
+            type: Date
         }
+    },
+    isApproved: {
+        type: Boolean,
+        default: false
     },
     createdAt: {
         type: Date,

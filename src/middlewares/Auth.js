@@ -36,12 +36,13 @@ export default class Auth {
                     messages.userNotFound, httpStatus.NOT_FOUND, true
                 ));
             }
-            if (user.isEmailVerified) {
+            if (req.url.includes('verification') && user.isEmailVerified) {
                 return next(new APIError(
                     messages.alreadyVerified, httpStatus.CONFLICT, true
                 ));
             }
             req.user = user;
+            req.token = token;
             return next();
         } catch (error) {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
@@ -76,6 +77,36 @@ export default class Auth {
             if (!user.isEmailVerified) {
                 return next(new APIError(
                     messages.notVerified, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            req.user = user;
+            return next();
+        } catch (error) {
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateEmailVerification
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async validateEmailVerification(req, res, next) {
+        try {
+            const user = await UserService.findByEmail(req.body.email);
+            if (!user) {
+                return next(new APIError(
+                    messages.noUserEmail, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (req.url.includes('resend') && user.isEmailVerified) {
+                return next(new APIError(
+                    messages.alreadyVerified, httpStatus.CONFLICT, true
                 ));
             }
             req.user = user;
