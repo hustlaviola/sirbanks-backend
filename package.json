@@ -47,6 +47,7 @@
     "mailgen": "^2.0.10",
     "moment": "^2.24.0",
     "mongoose": "^5.9.2",
+    "socket.io": "^2.3.0",
     "trim-request-body": "^1.0.1",
     "twilio": "^3.39.5",
     "winston": "^3.2.1"
