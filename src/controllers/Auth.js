@@ -160,7 +160,6 @@ export default class AuthController {
             await user.save();
             return response(res, httpStatus.OK, messages.passwordUpdateSuccess);
         } catch (error) {
-            console.log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

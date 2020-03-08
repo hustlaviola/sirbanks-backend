@@ -7,6 +7,7 @@ import httpStatus from 'http-status';
 import trimmer from 'trim-request-body';
 import expressWinston from 'express-winston';
 import fileupload from 'express-fileupload';
+import http from 'http';
 
 import connectDB from './config/db';
 import messages from './utils/messages';
@@ -17,6 +18,8 @@ import {
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
 import winstonInstance from './config/logger';
+
+import SocketServer from './socket/index';
 
 const app = express();
 
@@ -74,6 +77,10 @@ app.use((err, req, res, next) => {
 
 const { PORT } = process.env;
 
-app.listen(PORT, () => console.log(`listening on port: ${PORT}..`));
+const server = http.createServer(app);
 
-export default app;
+SocketServer.createServer(server);
+
+server.listen(PORT, () => console.log(`listening on port: ${PORT}..`));
+
+export default server;
