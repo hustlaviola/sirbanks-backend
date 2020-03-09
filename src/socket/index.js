@@ -1,5 +1,10 @@
 /* eslint-disable no-plusplus */
 import SocketIO from 'socket.io';
+// eslint-disable-next-line import/no-cycle
+import Auth from './handlers/Auth';
+import { AUTH } from './events';
+
+export const clients = {};
 
 /**
  * @class
@@ -24,9 +29,12 @@ export default class SocketServer {
             connectCounter++;
             console.log(`${connectCounter} client(s) connected`);
 
+            socket.on(AUTH, data => Auth.authenticate(socket, JSON.parse(data)));
+
             socket.on('disconnect', () => {
                 connectCounter--;
                 console.log(`${connectCounter} client(s) connected`);
+                Auth.disconnectUser(socket);
             });
         });
     }
