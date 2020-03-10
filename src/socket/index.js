@@ -1,8 +1,13 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-plusplus */
 import SocketIO from 'socket.io';
-// eslint-disable-next-line import/no-cycle
-import Auth from './handlers/Auth';
-import { AUTH } from './events';
+import AuthHandler from './handlers/Auth';
+import TripHandler from './handlers/Trip';
+import {
+    AUTH,
+    UPDATE_LOCATION,
+    UPDATE_AVAILABILITY
+} from './events';
 
 export const clients = {};
 
@@ -29,12 +34,20 @@ export default class SocketServer {
             connectCounter++;
             console.log(`${connectCounter} client(s) connected`);
 
-            socket.on(AUTH, data => Auth.authenticate(socket, JSON.parse(data)));
+            socket.on(AUTH, data => AuthHandler.authenticate(socket, JSON.parse(data)));
+
+            socket.on(
+                UPDATE_LOCATION, data => TripHandler.updateLocation(socket, JSON.parse(data))
+            );
+
+            socket.on(
+                UPDATE_AVAILABILITY, data => TripHandler.updateAvail(socket, JSON.parse(data))
+            );
 
             socket.on('disconnect', () => {
                 connectCounter--;
                 console.log(`${connectCounter} client(s) connected`);
-                Auth.disconnectUser(socket);
+                AuthHandler.disconnectUser(socket);
             });
         });
     }

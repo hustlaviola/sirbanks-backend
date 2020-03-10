@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import jwt from 'jsonwebtoken';
 
 import { clients } from './index';
@@ -20,6 +21,19 @@ export default class Helper {
     static emitByID(id, event, payload) {
         if (!clients[id]) return;
         return clients[id].emit(event, payload);
+    }
+
+    /**
+     * @method auth
+     * @description
+     * @static
+     * @param {string} id
+     * @returns {object} JSON response
+     * @memberof AuthHandler
+     */
+    static auth(id) {
+        if (clients[id]) return true;
+        return false;
     }
 
     /**
