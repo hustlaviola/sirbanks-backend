@@ -1,10 +1,24 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-plusplus */
+import util from 'util';
 import SocketIO from 'socket.io';
-// eslint-disable-next-line import/no-cycle
-import Auth from './handlers/Auth';
-import { AUTH } from './events';
+import AuthHandler from './handlers/Auth';
+import TripHandler from './handlers/Trip';
+import Helper from './Helper';
+import {
+    AUTH,
+    UPDATE_LOCATION,
+    UPDATE_AVAILABILITY,
+    REQUEST_RIDE,
+    REQUEST_DENIED,
+    SUCCESS
+} from './events';
 
 export const clients = {};
+export const reqStatus = {};
+export const pendingRequests = {};
+export const dispatchP = util.promisify(Helper.dispatch);
+export const sendTripRequestP = util.promisify(Helper.sendTripRequest);
 
 /**
  * @class
@@ -29,12 +43,35 @@ export default class SocketServer {
             connectCounter++;
             console.log(`${connectCounter} client(s) connected`);
 
-            socket.on(AUTH, data => Auth.authenticate(socket, JSON.parse(data)));
+            socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
+
+            socket.on(
+                UPDATE_LOCATION, data => TripHandler.updateLocation(socket, data)
+            );
+
+            socket.on(
+                UPDATE_AVAILABILITY, data => TripHandler.updateAvail(socket, data)
+            );
+
+            socket.on(
+                REQUEST_RIDE, data => TripHandler.requestRide(data)
+            );
+
+            socket.on(
+                REQUEST_DENIED, data => {
+                    socket.emit(SUCCESS, 'you succesfully rejected the request');
+                    reqStatus[data.tripId] = null;
+                    clearInterval(pendingRequests[data.tripId]);
+                    data.id = data.riderId;
+                    delete data.riderId;
+                    return TripHandler.requestRide(data);
+                }
+            );
 
             socket.on('disconnect', () => {
                 connectCounter--;
                 console.log(`${connectCounter} client(s) connected`);
-                Auth.disconnectUser(socket);
+                AuthHandler.disconnectUser(socket);
             });
         });
     }
