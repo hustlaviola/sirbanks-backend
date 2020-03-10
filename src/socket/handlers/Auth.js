@@ -22,7 +22,7 @@ export default class Auth {
      * @param {object} socket - Request object
      * @param {object} data - Response object
      * @returns {object} JSON response
-     * @memberof AuthHandler
+     * @memberof Auth
      */
     static async authenticate(socket, data) {
         try {
@@ -45,9 +45,19 @@ export default class Auth {
                 socket.isDriver = true;
                 user.isOnline = true;
                 await user.save();
+                user = user.toJSON();
+                const {
+                    firstName, email, avatar, vehicleDetails
+                } = user;
+                socket.userInfo = {
+                    firstName, email, avatar, vehicleDetails
+                };
             } else {
                 user = await Rider.findById(id);
                 if (!user) return socket.emit(ERROR, 'User not found');
+                socket.userInfo = {
+                    email: user.email, firstName: user.firstName
+                };
             }
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
