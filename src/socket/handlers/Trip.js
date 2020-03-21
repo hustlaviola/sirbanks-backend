@@ -104,7 +104,6 @@ export default class Trip {
         }
     }
 
-
     /**
      * @method requestRide
      * @description

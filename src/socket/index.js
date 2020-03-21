@@ -42,7 +42,6 @@ export default class SocketServer {
         io.sockets.on('connection', socket => {
             connectCounter++;
             console.log(`${connectCounter} client(s) connected`);
-
             socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
 
             socket.on(
