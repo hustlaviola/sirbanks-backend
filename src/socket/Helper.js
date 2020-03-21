@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-plusplus */
 /* eslint-disable import/no-cycle */
 import jwt from 'jsonwebtoken';
@@ -92,25 +93,36 @@ export default class Helper {
     static async sendTripRequest(payload, drivers, quantum, callback) {
         try {
             const driver = drivers[0];
-            const tripRequest = await Helper.createTripRequest(payload, driver);
-            reqStatus[tripRequest.id] = null;
+            const newRequest = await Helper.createTripRequest(payload, driver);
+            const {
+                id, riderId, driverId, pickUpLocation, dropOffLocation, status
+            } = newRequest;
+            const tripRequest = {
+                tripId: id,
+                riderId,
+                driverId,
+                pickUpLocation,
+                dropOffLocation,
+                status
+            };
+            reqStatus[tripRequest.tripId] = payload;
             const newDrivers = [...drivers];
             newDrivers.shift();
             tripRequest.newDrivers = newDrivers;
-            if (clients[driver.id]) {
-                clients[driver.id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
+            if (clients[driver._id]) {
+                clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
             }
-            console.log(`Sent request to: ${driver.name} id: ${driver.id}`);
-            pendingRequests[tripRequest.id] = setInterval(() => {
+            console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
+            pendingRequests[tripRequest.tripId] = setInterval(() => {
                 quantum--;
                 console.log(quantum);
                 if (quantum < 1) {
-                    clearInterval(pendingRequests[tripRequest.id]);
-                    if (clients[driver.id]) {
-                        clients[driver.id].emit(TIMEOUT, 'You didn\'t respond to this request');
+                    clearInterval(pendingRequests[tripRequest.tripId]);
+                    if (clients[driver._id]) {
+                        clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
                     }
-                    reqStatus[tripRequest.id] = null;
-                    return callback(null, tripRequest.id);
+                    reqStatus[tripRequest.tripId] = undefined;
+                    return callback(null, tripRequest.tripId);
                 }
             }, 1000);
         } catch (error) {
@@ -133,17 +145,13 @@ export default class Helper {
      */
     static async createTripRequest(payload, driver) {
         const {
-            id, pickUp, pickUpLat, pickuPLon, dropOff, dropOffLat, dropOffLon, paymentMethod
+            id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat, dropOffLon, dropOffLat
         } = payload;
-        const pickUpLocation = {
-            coordinates: [Number(pickuPLon), Number(pickUpLat)]
-        };
-        const dropOffLocation = {
-            coordinates: [Number(dropOffLon), Number(dropOffLat)]
-        };
+        const pickUpLocation = { coordinates: [Number(pickUpLon), Number(pickUpLat)] };
+        const dropOffLocation = { coordinates: [Number(dropOffLon), Number(dropOffLat)] };
         const request = {
             riderId: id,
-            driverId: driver.id,
+            driverId: driver._id,
             pickUp,
             pickUpLocation,
             dropOff,
@@ -152,6 +160,6 @@ export default class Helper {
             paymentMethod
         };
         const tripRequest = await TripRequest.create(request);
-        return tripRequest.toJSON();
+        return tripRequest;
     }
 }

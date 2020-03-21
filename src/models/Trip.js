@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const TripRequestSchema = new mongoose.Schema({
+const TripSchema = new mongoose.Schema({
     riderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'riders',
@@ -37,11 +37,11 @@ const TripRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'rejected', 'accepted']
+        enum: ['accepted', 'cancelled', 'transit', 'ended']
     },
     paymentMethod: {
         type: String,
-        enum: ['cash', 'card']
+        enum: ['cash', 'card', 'wallet']
     },
     createdAt: {
         type: Date,
@@ -49,8 +49,8 @@ const TripRequestSchema = new mongoose.Schema({
     }
 });
 
-TripRequestSchema.index({ pickUpLocation: '2dsphere' }, { dropOffLocation: '2dsphere' });
+TripSchema.index({ pickUpLocation: '2dsphere' }, { dropOffLocation: '2dsphere' });
 
-const TripRequest = mongoose.model('trip_request', TripRequestSchema);
+const Trip = mongoose.model('trip', TripSchema);
 
-export default TripRequest;
+export default Trip;
