@@ -10,6 +10,7 @@ import {
     UPDATE_LOCATION,
     UPDATE_AVAILABILITY,
     REQUEST_RIDE,
+    REQUEST_ACCEPTED,
     REQUEST_DENIED,
     SUCCESS
 } from './events';
@@ -56,10 +57,16 @@ export default class SocketServer {
                 REQUEST_RIDE, data => TripHandler.requestRide(data)
             );
 
+            socket.on(REQUEST_ACCEPTED, data => {
+                reqStatus[data.tripId] = data;
+                clearInterval(pendingRequests[data.tripId]);
+                return TripHandler.requestAccepted(socket, data);
+            });
+
             socket.on(
                 REQUEST_DENIED, data => {
                     socket.emit(SUCCESS, 'you succesfully rejected the request');
-                    reqStatus[data.tripId] = null;
+                    reqStatus[data.tripId] = undefined;
                     clearInterval(pendingRequests[data.tripId]);
                     data.id = data.riderId;
                     delete data.riderId;

@@ -88,6 +88,11 @@ const DriverSchema = new Schema({
         type: Boolean,
         default: false
     },
+    tripStatus: {
+        type: String,
+        default: 'none',
+        enum: ['none', 'accepted', 'transit']
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -1,22 +1,25 @@
 /* eslint-disable import/no-cycle */
+import { getDistance } from 'geolib';
 import {
     ERROR,
     SUCCESS,
-    NO_DRIVER_FOUND
+    NO_DRIVER_FOUND,
+    DRIVER_FOUND
 } from '../events';
 import Driver from '../../models/Driver';
+import Trip from '../../models/Trip';
 // import Rider from '../../models/Rider';
 import Helper from '../Helper';
-import { dispatchP } from '../index';
+import { clients, dispatchP } from '../index';
 
 // import { clients } from '../index';
 
 /**
  * @class
  * @description A handler class for Authentication
- * @exports Trip
+ * @exports TripHandler
  */
-export default class Trip {
+export default class TripHandler {
     /**
      * @method updateLocation
      * @description
@@ -24,7 +27,7 @@ export default class Trip {
      * @param {object} socket - Request object
      * @param {object} data - Response object
      * @returns {object} JSON response
-     * @memberof Trip
+     * @memberof TripHandler
      */
     static async updateLocation(socket, data) {
         try {
@@ -39,7 +42,7 @@ export default class Trip {
             if (!driver) {
                 return Helper.emitByID(id, ERROR, 'User not found');
             }
-            const location = { coordinates: [lon, lat] };
+            const location = { type: 'Point', coordinates: [Number(lon), Number(lat)] };
             driver.location = location;
             await driver.save();
             // if (trip) {
@@ -81,7 +84,7 @@ export default class Trip {
      * @param {object} socket - Request object
      * @param {object} data - Response object
      * @returns {object} JSON response
-     * @memberof Trip
+     * @memberof TripHandler
      */
     static async updateAvail(socket, data) {
         try {
@@ -110,12 +113,12 @@ export default class Trip {
      * @static
      * @param {object} data - Response object
      * @returns {object} JSON response
-     * @memberof Trip
+     * @memberof TripHandler
      */
     static async requestRide(data) {
         try {
             const {
-                id, pickupLon, pickupLat, newDrivers
+                id, pickUpLon, pickUpLat, newDrivers
             } = data;
             // If a driver declines request and the rider is no longer online
             // Request won't be routed to another driver
@@ -126,14 +129,20 @@ export default class Trip {
                 drivers = await Driver.aggregate([
                     {
                         $geoNear: {
-                            near: { type: 'Point', coordinates: [Number(pickupLon), Number(pickupLat)] },
+                            near: { type: 'Point', coordinates: [Number(pickUpLon), Number(pickUpLat)] },
                             distanceField: 'dist.calculated',
                             maxDistance: 3000,
                             spherical: true
                         }
+                    },
+                    {
+                        $match: {
+                            isAvailable: true,
+                            isOnline: true,
+                            tripStatus: 'none'
+                        }
                     }
                 ]);
-                console.log(drivers);
             } else {
                 drivers = newDrivers;
             }
@@ -141,7 +150,78 @@ export default class Trip {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
             await dispatchP(data, drivers);
-            return Helper.emitByJid(id, NO_DRIVER_FOUND, 'No driver found');
+            return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    /**
+     * @method requestAccepted
+     * @description
+     * @static
+     * @param {object} socket
+     * @param {object} data - Response object
+     * @returns {object} JSON response
+     * @memberof TripHandler
+     */
+    static async requestAccepted(socket, data) {
+        try {
+            const { id, lon, lat } = data;
+            if (!Helper.auth(id)) {
+                return socket.emit(ERROR, 'Unauthorized');
+            }
+            const {
+                riderId, pickUp, dropOff, paymentMethod, pickUpLon,
+                pickUpLat, dropOffLon, dropOffLat, tripId
+            } = data;
+            const pickUpLocation = { coordinates: [Number(pickUpLon), Number(pickUpLat)] };
+            const dropOffLocation = { coordinates: [Number(dropOffLon), Number(dropOffLat)] };
+            let trip = {
+                riderId,
+                driverId: id,
+                pickUp,
+                pickUpLocation,
+                dropOff,
+                dropOffLocation,
+                tripRequestId: tripId,
+                status: 'accepted',
+                paymentMethod
+            };
+            const driver = await Driver.findById(id);
+            driver.tripStatus = 'accepted';
+            await driver.save();
+            // await driver.save({ tripStatus: 'accepted' });
+            trip = await Trip.create(trip);
+
+            // If the rider is still online
+            const {
+                firstName, avatar, vehicleDetails
+            } = clients[id].userInfo;
+            const distance = getDistance(
+                { latitude: pickUpLat, longitude: pickUpLon },
+                { latitude: lat, longitude: lon }
+            );
+            const driverDetails = {
+                driverName: firstName, avatar, lon, lat, distance, vehicleDetails
+            };
+            const riderName = clients[riderId].userInfo.firstName;
+            const newTrip = {
+                riderId,
+                driverId: trip.driverId,
+                riderName,
+                pickUp,
+                pickUpLon,
+                pickUpLat,
+                dropOff,
+                dropOffLon,
+                dropOffLat,
+                distance,
+                driverDetails
+            };
+            Helper.emitByID(data.riderId, DRIVER_FOUND, JSON.stringify(newTrip));
+            console.log('Request accepted');
+            return Helper.emitByID(id, SUCCESS, 'You have successfully accepted the request');
         } catch (error) {
             console.log(error);
         }
