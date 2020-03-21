@@ -109,6 +109,7 @@ export default class UserValidator {
                 vehiclePaperUrl,
                 licenceDetails
             };
+            const location = { coordinates: [0, 0] };
             user = {
                 firstName,
                 lastName,
@@ -116,7 +117,8 @@ export default class UserValidator {
                 phone,
                 password,
                 avatar,
-                vehicleDetails
+                vehicleDetails,
+                location
             };
             req.user = user;
             return next();

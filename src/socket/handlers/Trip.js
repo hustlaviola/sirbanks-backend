@@ -1,11 +1,13 @@
 /* eslint-disable import/no-cycle */
 import {
     ERROR,
-    SUCCESS
+    SUCCESS,
+    NO_DRIVER_FOUND
 } from '../events';
 import Driver from '../../models/Driver';
 // import Rider from '../../models/Rider';
 import Helper from '../Helper';
+import { dispatchP } from '../index';
 
 // import { clients } from '../index';
 
@@ -95,8 +97,51 @@ export default class Trip {
             }
             driver.isAvailable = availability;
             await driver.save();
-            console.log(`You are now ${availability}`);
-            return Helper.emitByID(id, SUCCESS, `You are now ${availability}`);
+            console.log(`You are now ${availability ? 'available' : 'unavailable'}`);
+            return Helper.emitByID(id, SUCCESS, `You are now ${availability ? 'available' : 'unavailable'}`);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    /**
+     * @method requestRide
+     * @description
+     * @static
+     * @param {object} data - Response object
+     * @returns {object} JSON response
+     * @memberof Trip
+     */
+    static async requestRide(data) {
+        try {
+            const {
+                id, pickupLon, pickupLat, newDrivers
+            } = data;
+            // If a driver declines request and the rider is no longer online
+            // Request won't be routed to another driver
+            if (!Helper.auth(id)) return;
+            console.log('Searching for drivers');
+            let drivers;
+            if (!newDrivers) {
+                drivers = await Driver.aggregate([
+                    {
+                        $geoNear: {
+                            near: { type: 'Point', coordinates: [Number(pickupLon), Number(pickupLat)] },
+                            distanceField: 'dist.calculated',
+                            maxDistance: 3000,
+                            spherical: true
+                        }
+                    }
+                ]);
+                console.log(drivers);
+            } else {
+                drivers = newDrivers;
+            }
+            if (drivers.length < 1) {
+                return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+            }
+            await dispatchP(data, drivers);
+            return Helper.emitByJid(id, NO_DRIVER_FOUND, 'No driver found');
         } catch (error) {
             console.log(error);
         }
