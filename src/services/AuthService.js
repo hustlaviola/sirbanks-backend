@@ -40,6 +40,21 @@ export default class AuthService {
     }
 
     /**
+     * @method checkOtp
+     * @description Check if token exists in the database
+     * @static
+     * @param {object} userId
+     * @param {object} token - token
+     * @returns {object} JSON response
+     * @memberof AuthService
+     */
+    static async checkOtp(userId, token) {
+        const dbToken = await Token.findOne({ userId, token });
+        if (!dbToken) return false;
+        return dbToken;
+    }
+
+    /**
      * @method sendPhoneCode
      * @description Check if token exists in the database
      * @static
@@ -77,5 +92,18 @@ export default class AuthService {
                 code: req.query.code
             });
         return result;
+    }
+
+    /**
+     * @method generateEmailToken
+     * @description Generates a token for email service
+     * @static
+     * @param {object} userId - id of the user
+     * @returns {object} JSON response
+     * @memberof AuthService
+     */
+    static async generateEmailToken(userId) {
+        const token = { userId, token: Math.floor(Math.random() * 10000) };
+        return Token.create(token);
     }
 }

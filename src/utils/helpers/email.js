@@ -1,13 +1,34 @@
 import MailGen from 'mailgen';
 
 // Instantiate MailGen object
-const mailGenerator = new MailGen({
+export const mailGenerator = new MailGen({
     theme: 'salted',
     product: {
         name: 'Sirbanks',
         link: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
     }
 });
+
+/**
+ * @function otpMail
+ * @description Generates body of email to be sent
+ * @param {String} name - Recipient name
+ * @param {String} intro - Introductory message
+ * @param {Object} instructions
+ * @returns {object} Email object
+ */
+export const otpMail = (name, intro, instructions) => {
+    const email = {
+        body: {
+            name,
+            intro,
+            action: {
+                instructions
+            }
+        }
+    };
+    return email;
+};
 
 /**
  * @function mail
@@ -18,7 +39,7 @@ const mailGenerator = new MailGen({
  * @param {Object} secondAction - Second action to be performed
  * @returns {object} Email object
  */
-const mail = (name, intro, action, secondAction = undefined) => {
+export const mail = (name, intro, action, secondAction = undefined) => {
     const { instructions, text, link } = action;
     const actionArray = [{
         instructions,
@@ -47,5 +68,3 @@ const mail = (name, intro, action, secondAction = undefined) => {
     };
     return email;
 };
-
-export { mail, mailGenerator };

@@ -95,15 +95,20 @@ export default class Helper {
             const driver = drivers[0];
             const newRequest = await Helper.createTripRequest(payload, driver);
             const {
-                id, riderId, driverId, pickUpLocation, dropOffLocation, status
+                id, riderId, driverId, pickUp, pickUpLocation, dropOff, dropOffLocation
             } = newRequest;
+            const riderName = clients[riderId].userInfo.firstName;
             const tripRequest = {
                 tripId: id,
                 riderId,
+                riderName,
                 driverId,
-                pickUpLocation,
-                dropOffLocation,
-                status
+                pickUp,
+                pickUpLon: pickUpLocation.coordinates[0],
+                pickUpLat: pickUpLocation.coordinates[1],
+                dropOff,
+                dropOffLon: dropOffLocation.coordinates[0],
+                dropOffLat: dropOffLocation.coordinates[1]
             };
             reqStatus[tripRequest.tripId] = payload;
             const newDrivers = [...drivers];

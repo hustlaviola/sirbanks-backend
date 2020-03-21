@@ -1,5 +1,5 @@
 import express from 'express';
-import debug from 'debug';
+// import debug from 'debug';
 import compression from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -11,9 +11,8 @@ import http from 'http';
 
 import connectDB from './config/db';
 import messages from './utils/messages';
-import response from './utils/response';
 import {
-    userRouter, authRouter
+    riderRouter, driverRouter, authRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
@@ -23,7 +22,7 @@ import SocketServer from './socket/index';
 
 const app = express();
 
-const log = debug('app:http');
+// const log = debug('app:http');
 
 connectDB();
 app.use(express.json());
@@ -31,7 +30,7 @@ app.use(express.json());
 // Compress response
 app.use(compression());
 
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(fileupload({
     useTempFiles: true
 }));
@@ -47,10 +46,11 @@ app.use(trimmer);
 
 app.set('view engine', 'ejs');
 
-app.use('/api/v1/users', userRouter);
+app.use('/api/v1/users', riderRouter);
+app.use('/api/v1/drivers', driverRouter);
 app.use('/api/v1/auth', authRouter);
 
-app.get('/', (req, res) => response(res, 200, messages.root));
+app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
 
 // Handle route 404
 app.all('/*', (req, res, next) => {
@@ -68,12 +68,10 @@ if (process.env.NODE_ENV === 'development') {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
     if (!err.isOperational) {
-        log(err);
-        process.exit(1);
+        console.log(err);
     }
     handleError(err, res);
 });
-
 
 const { PORT } = process.env;
 

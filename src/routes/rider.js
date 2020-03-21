@@ -6,7 +6,7 @@ import UserController from '../controllers/User';
 
 const router = express.Router();
 
-router.post('/:role',
+router.post('/rider',
     validator('register'),
     validate,
     UserValidator.validateUserReg,

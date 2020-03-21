@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 
 import Helper from '../utils/helpers/Helper';
@@ -12,6 +13,82 @@ import UserService from '../services/UserService';
  * @exports Auth
  */
 export default class Auth {
+    /**
+     * @method userAuth
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static userAuth(req, res, next) {
+        if (!req.headers.authorization) {
+            return next(new APIError(
+                messages.notLoggedIn, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+
+        const token = req.headers.authorization.split(' ')[1];
+
+        try {
+            const decoded = jwt.verify(token, process.env.SECRET);
+            req.user = decoded;
+            return next();
+        } catch (error) {
+            const message = Auth.getTokenErrorMessage(error);
+            return next(new APIError(message, httpStatus.UNAUTHORIZED, true));
+        }
+    }
+
+    /**
+     * @method getTokenErrorMessage
+     * @description get jwt error message
+     * @static
+     * @param {object} error - Request object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static getTokenErrorMessage(error) {
+        const expMessage = 'your session has expired, please login again';
+        const errorMessage = error.message === 'jwt expired' ? expMessage : 'Authentication failed';
+        return errorMessage;
+    }
+
+    /**
+     * @method validateEmailOtpVerification
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async validateEmailOtpVerification(req, res, next) {
+        try {
+            const { id } = req.user;
+            const isValid = await AuthService.checkOtp(id, req.body.otp);
+            if (!isValid) {
+                return next(new APIError(
+                    messages.invalidOtp, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            const user = await UserService.findById(id, 'driver');
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            req.user = user;
+            return next();
+        } catch (error) {
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
     /**
      * @method validateParamToken
      * @description

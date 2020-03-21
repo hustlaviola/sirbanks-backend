@@ -65,11 +65,12 @@ export default class Helper {
      * @description Check if image is valid
      * @static
      * @param {object} files - Request files
+     * @param {object} name
      * @returns {object} JSON response
      * @memberof Helper
      */
-    static async checkImage(files) {
-        if (!files || !Object.prototype.hasOwnProperty.call(files, 'avatar')) return false;
+    static async checkImage(files, name) {
+        if (!files || !Object.prototype.hasOwnProperty.call(files, name)) return false;
         return true;
     }
 }

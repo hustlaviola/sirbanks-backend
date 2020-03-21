@@ -15,8 +15,20 @@ const messages = {
     emailVerification: 'Email verification link has been sent to your email',
     passwordReset: 'Password reset link has been sent to your email',
     passwordUpdateSuccess: 'Password updated successfully',
-    noAvatarInput: 'No avatar input',
-    noSupportType: 'File type not supported'
+    noAvatarInput: 'No avatar file',
+    noLicenceInput: 'No licence file',
+    noInsuranceInput: 'No insurance file',
+    noVehiclePaperInput: 'No vehicle paper file',
+    noSupportType: 'file type not supported',
+    notLoggedIn: 'You are not logged in',
+    authFailed: 'Authentication failed',
+    invalidOtp: 'Invalid otp',
+    riderAccount: 'Account created successfully, verification link has been sent to your email address',
+    driverAccount: 'Driver account created successfully',
+    vehicleDetails: 'Vehicle details updated successfully',
+    onboardingCompleted: 'Driver onboarding completed',
+    alreadyCompletedOnboarding: 'Onboarding already completed',
+    alreadyUpdateVehicleDetails: 'Already updated vehicle details'
 };
 
 export default messages;

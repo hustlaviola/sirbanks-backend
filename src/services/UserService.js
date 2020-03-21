@@ -57,12 +57,12 @@ export default class UserService {
      * @description Creates a new User
      * @static
      * @param {object} user - User object to be created
-     * @param {string} role - Rider or Driver
+     * @param {string} isDriver - Rider or Driver
      * @returns {object} JSON response
      * @memberof UserService
      */
-    static createUser(user, role) {
-        if (role === 'rider') return Rider.create(user);
+    static createUser(user, isDriver) {
+        if (!isDriver) return Rider.create(user);
         return Driver.create(user);
     }
 

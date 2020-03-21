@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import debug from 'debug';
+// import debug from 'debug';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const log = debug('app:mongo');
+// const log = debug('app:mongo');
 
 const db = process.env.MONGO_URI;
 
@@ -17,10 +17,9 @@ const connectDB = async () => {
             bufferCommands: false,
             useFindAndModify: false
         });
-        log('MongoDB connected..');
+        console.log('MongoDB connected..');
     } catch (error) {
-        log(error);
-        process.exit(1);
+        console.log(error);
     }
 };
 

@@ -12,7 +12,6 @@ const TokenSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        required: true,
         default: Date.now,
         expires: 43200
     }

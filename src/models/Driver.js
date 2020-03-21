@@ -38,7 +38,8 @@ const DriverSchema = new Schema({
             default: 'Point'
         },
         coordinates: {
-            type: [Number]
+            type: [Number],
+            default: [0, 0]
         }
     },
     isOnline: {
@@ -83,6 +84,10 @@ const DriverSchema = new Schema({
                 type: Date
             }
         }
+    },
+    onboardingStatus: {
+        type: String,
+        enum: ['initiated', 'email_verified', 'vehicle_details', 'completed']
     },
     isApproved: {
         type: Boolean,

@@ -5,7 +5,7 @@ import response from '../utils/response';
 import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
 import AuthService from '../services/AuthService';
-import sendMail from '../utils/sendMail';
+import sendMail, { sendOtpMail } from '../utils/sendMail';
 
 /**
  * @class
@@ -76,6 +76,34 @@ export default class AuthController {
     }
 
     /**
+     * @method verifyEmail
+     * @description Verifies email or render password reset page
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof AuthController
+     */
+    static async verifyEmail(req, res, next) {
+        try {
+            let { user } = req;
+            user.isEmailVerified = true;
+            user.onboardingStatus = 'email_verified';
+            const token = await Helper.generateToken({ id: user.id });
+            user = await user.save();
+            const payload = {
+                token,
+                onboardingStatus: user.onboardingStatus,
+                isEmailVerified: user.isEmailVerified
+            };
+            return response(res, httpStatus.OK, messages.emailVerified, payload);
+        } catch (error) {
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
      * @method login
      * @description Logs a user in
      * @static
@@ -87,13 +115,20 @@ export default class AuthController {
      */
     static async login(req, res, next) {
         try {
-            let { user } = req;
+            const { user } = req;
             const { id } = user;
             const payload = { id };
             const token = await Helper.generateToken(payload);
-            user = user.toJSON();
-            delete user.password;
-            return response(res, httpStatus.OK, messages.loginSuccess, { token, user });
+            const userDTO = {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                isEmailVerified: user.isEmailVerified,
+                vehicleDetails: user.vehicleDetails,
+                onboardingStatus: user.onboardingStatus
+            };
+            return response(res, httpStatus.OK, messages.loginSuccess, { token, user: userDTO });
         } catch (error) {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
@@ -113,7 +148,16 @@ export default class AuthController {
         try {
             const { user, role } = req;
             const { id, firstName, email } = user;
-            const token = await AuthService.regToken(id);
+            let token;
+            if (role === 'driver' && req.url.includes('resend')) {
+                token = await AuthService.generateEmailToken(user.id);
+                const instructions = `Your One Time Password is: ${token.token}`;
+                await sendOtpMail(email, 'Email Verification', instructions);
+                const { onboardingStatus } = user;
+                return response(res, httpStatus.CREATED,
+                    messages.registration, { onboardingStatus });
+            }
+            token = await AuthService.regToken(id);
             let type = 'email_verification';
             let subject = 'Email Confirmation';
             let intro = 'Email Verification';

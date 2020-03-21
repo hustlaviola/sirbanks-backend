@@ -4,7 +4,10 @@ import {
     ERROR,
     SUCCESS,
     NO_DRIVER_FOUND,
-    DRIVER_FOUND
+    DRIVER_FOUND,
+    ARRIVED,
+    ARRIVING,
+    ENROUTE
 } from '../events';
 import Driver from '../../models/Driver';
 import Trip from '../../models/Trip';
@@ -32,7 +35,7 @@ export default class TripHandler {
     static async updateLocation(socket, data) {
         try {
             const {
-                id, lon, lat
+                id, lon, lat, trip
             } = data;
             if (!Helper.auth(id)) {
                 return socket.emit(ERROR, 'Unauthorized');
@@ -45,31 +48,34 @@ export default class TripHandler {
             const location = { type: 'Point', coordinates: [Number(lon), Number(lat)] };
             driver.location = location;
             await driver.save();
-            // if (trip) {
-            //     const { pickup_lat, pickup_lon } = trip;
-            //     const distance = getDistance(
-            //         { latitude: pickup_lat, longitude: pickup_lon },
-            //         { latitude: lat, longitude: lon }
-            //     );
-            //     if (clients[trip.rider_jid]) {
-            //         const driver_details = {
-            //             driver_name: name, image_url, lon, lat, distance, vehicle_details
-            //         };
-            //         if (distance <= 200) {
-            //             return Helper.emitByJid(
-            //                 trip.rider_jid, ARRIVED, JSON.stringify(driver_details)
-            //             );
-            //         } else if (distance <= 600) {
-            //             return Helper.emitByJid(
-            //                 trip.rider_jid, ARRIVING, JSON.stringify(driver_details)
-            //             );
-            //         } else {
-            //             return Helper.emitByJid(
-            //                 trip.rider_jid, ENROUTE, JSON.stringify(driver_details)
-            //             );
-            //         }
-            //     }
-            // }
+            const {
+                firstName, avatar, vehicleDetails
+            } = clients[id].userInfo;
+            if (trip) {
+                const { pickUpLat, pickUpLon } = trip;
+                const distance = getDistance(
+                    { latitude: pickUpLat, longitude: pickUpLon },
+                    { latitude: lat, longitude: lon }
+                );
+                if (clients[trip.riderId]) {
+                    const driverDetails = {
+                        driverName: firstName, avatar, lon, lat, distance, vehicleDetails
+                    };
+                    if (distance <= 200) {
+                        Helper.emitByID(
+                            trip.riderId, ARRIVED, JSON.stringify(driverDetails)
+                        );
+                    } else if (distance <= 600) {
+                        Helper.emitByID(
+                            trip.riderId, ARRIVING, JSON.stringify(driverDetails)
+                        );
+                    } else {
+                        Helper.emitByID(
+                            trip.riderId, ENROUTE, JSON.stringify(driverDetails)
+                        );
+                    }
+                }
+            }
             return console.log('Location updated Successfully');
             // socket.emit(SUCCESS, 'Location updated Successfully');
         } catch (error) {
@@ -205,11 +211,9 @@ export default class TripHandler {
             const driverDetails = {
                 driverName: firstName, avatar, lon, lat, distance, vehicleDetails
             };
-            const riderName = clients[riderId].userInfo.firstName;
             const newTrip = {
                 riderId,
                 driverId: trip.driverId,
-                riderName,
                 pickUp,
                 pickUpLon,
                 pickUpLat,

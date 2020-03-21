@@ -27,6 +27,13 @@ router.post('/:role/resend',
     AuthValidator.validateEmailVerification,
     AuthController.emailVerificationOrResetPassword);
 
+router.post('/driver/verify_email',
+    AuthValidator.userAuth,
+    validator('verify_email'),
+    validate,
+    AuthValidator.validateEmailOtpVerification,
+    AuthController.verifyEmail);
+
 router.post('/:role/forgot_password',
     validator('email_only'),
     validate,
