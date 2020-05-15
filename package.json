@@ -7,7 +7,7 @@
     "clean": "rm -rf build && mkdir build",
     "build-babel": "babel ./src --out-dir build",
     "build": "npm run clean && npm run build-babel",
-    "dev": "set DEBUG=app:* && cross-env NODE_ENV=development nodemon ./src --exec babel-node",
+    "dev": "export DEBUG=app:* && cross-env NODE_ENV=development nodemon ./src --exec babel-node",
     "lint": "eslint . --ext .js",
     "lint:fix": "npm run lint -- --fix"
   },
@@ -31,8 +31,6 @@
     "core-js": "^3.6.4",
     "cors": "^2.8.5",
     "cross-env": "^7.0.0",
-    "crypto-js": "^4.0.0",
-    "cryptojs": "^2.5.3",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "ejs": "^3.0.1",
@@ -52,6 +50,8 @@
     "socket.io": "^2.3.0",
     "trim-request-body": "^1.0.1",
     "twilio": "^3.39.5",
+    "uuid": "^8.0.0",
+    "validator": "^13.0.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {

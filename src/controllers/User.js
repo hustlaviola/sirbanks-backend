@@ -29,13 +29,15 @@ export default class UserController {
             let { user } = req;
             const { isDriver } = req;
             user = await UserService.createUser(user, isDriver);
-            const { id, firstName, email } = user;
+            const {
+                id, firstName, email, role
+            } = user;
             let token;
             if (isDriver) {
                 token = await AuthService.generateEmailToken(user.id);
                 const instructions = `Your One Time Password is: ${token.token}`;
                 await sendOtpMail(email, 'Email Confirmation', instructions);
-                const userToken = await Helper.generateToken({ id });
+                const userToken = await Helper.generateToken({ id, role });
                 const { onboardingStatus, isEmailVerified } = user;
                 return response(res, httpStatus.CREATED,
                     messages.driverAccount,
@@ -80,6 +82,7 @@ export default class UserController {
             };
             return response(res, httpStatus.OK, messages.vehicleDetails, payload);
         } catch (error) {
+            console.log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

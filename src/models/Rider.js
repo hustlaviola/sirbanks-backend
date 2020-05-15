@@ -25,6 +25,10 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
+    walletBalance: {
+        type: Number,
+        default: 0
+    },
     isEmailVerified: {
         type: Boolean,
         default: false

@@ -1,4 +1,6 @@
 /* eslint-disable import/no-cycle */
+import debug from 'debug';
+import validator from 'validator';
 import {
     ERROR,
     SUCCESS
@@ -9,6 +11,8 @@ import Helper from '../Helper';
 
 import { clients } from '../index';
 
+const log = debug('app:auth');
+
 /**
  * @class
  * @description A handler class for Authentication
@@ -16,36 +20,58 @@ import { clients } from '../index';
  */
 export default class Auth {
     /**
-     * @method authenticate
+     * @method conn
      * @description
      * @static
      * @param {object} socket - Request object
-     * @param {object} data - Response object
+     * @param {object} token - Response object
      * @returns {object} JSON response
      * @memberof Auth
      */
-    static async authenticate(socket, data) {
+    static async conn(socket, token) {
         try {
-            const { id, role, token } = data;
+            if (!token) {
+                log('token is required');
+                socket.emit(ERROR, 'token is required');
+                return socket.disconnect();
+            }
+            token = token.replace('Bearer ', '');
+            if (!validator.isJWT(token)) {
+                log('Invalid token');
+                socket.emit(ERROR, 'Invalid token');
+                return socket.disconnect();
+            }
+            const { id, role } = await Helper.decodeToken(token);
             if (!id || !role) {
-                return socket.emit(ERROR, `No 'id/role ${data}`);
+                log('Invalid token');
+                socket.emit(ERROR, 'Invalid token');
+                return socket.disconnect();
             }
-            let user = await Helper.decodeToken(token);
-            if (!user || user.id !== id) {
-                return socket.emit(ERROR, 'Authentication failed');
+            if (!validator.isMongoId(id)) {
+                log('Invalid id');
+                socket.emit(ERROR, 'Invalid id');
+                return socket.disconnect();
             }
-            if (Object.prototype.hasOwnProperty.call(clients, id) && clients[id].id !== socket.id) {
+            const validRoles = ['rider', 'driver'];
+            if (!validRoles.includes(role)) {
+                log('Invalid role');
+                socket.emit(ERROR, 'Invalid role');
+                return socket.disconnect();
+            }
+            if (
+                Object.prototype.hasOwnProperty.call(clients, id) && clients[id].id !== socket.id
+            ) {
                 clients[id].disconnect();
             }
             socket.jid = id;
             socket.isDriver = false;
+            let user;
             if (role === 'driver') {
                 user = await Driver.findById(id);
                 if (!user) return socket.emit(ERROR, 'User not found');
                 socket.isDriver = true;
                 user.isOnline = true;
                 await user.save();
-                user = user.toJSON();
                 const {
                     firstName, email, avatar, vehicleDetails
                 } = user;
@@ -66,6 +92,65 @@ export default class Auth {
         }
     }
 
+    // /**
+    //  * @method authenticate
+    //  * @description
+    //  * @static
+    //  * @param {object} socket - Request object
+    //  * @param {object} data - Response object
+    //  * @returns {object} JSON response
+    //  * @memberof Auth
+    //  */
+    // static async authenticate(socket, data) {
+    //     try {
+    //         const { id, role, token } = data;
+    //         if (!id || !role || !token) {
+    //             return socket.emit(ERROR, 'id/role/token is required');
+    //         }
+    //         if (!validator.isMongoId(id)) {
+    //             return socket.emit(ERROR, 'Invalid id');
+    //         }
+    //         const validRoles = ['rider', 'driver'];
+    //         if (!validRoles.includes(role)) {
+    //             return socket.emit(ERROR, 'Invalid role');
+    //         }
+    //         let user = await Helper.decodeToken(token);
+    //         if (!user || user.id !== id) {
+    //             return socket.emit(ERROR, 'Authentication failed');
+    //         }
+    //         if (Object.prototype.hasOwnProperty.call(clients, id)
+    //          && clients[id].id !== socket.id) {
+    //             clients[id].disconnect();
+    //         }
+    //         socket.jid = id;
+    //         socket.isDriver = false;
+    //         if (role === 'driver') {
+    //             user = await Driver.findById(id);
+    //             if (!user) return socket.emit(ERROR, 'User not found');
+    //             socket.isDriver = true;
+    //             user.isOnline = true;
+    //             await user.save();
+    //             user = user.toJSON();
+    //             const {
+    //                 firstName, email, avatar, vehicleDetails
+    //             } = user;
+    //             socket.userInfo = {
+    //                 firstName, email, avatar, vehicleDetails
+    //             };
+    //         } else {
+    //             user = await Rider.findById(id);
+    //             if (!user) return socket.emit(ERROR, 'User not found');
+    //             socket.userInfo = {
+    //                 email: user.email, firstName: user.firstName
+    //             };
+    //         }
+    //         clients[id] = socket;
+    //         return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
+
     /**
      * @method disconnectUser
      * @description
@@ -82,8 +167,8 @@ export default class Auth {
                 if (driver) {
                     driver.isOnline = false;
                     driver.isAvailable = false;
-                    await driver.save();
                     delete clients[socket.jid];
+                    await driver.save();
                 }
                 console.log(`${jid} disconnected`);
             } catch (error) {

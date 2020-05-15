@@ -97,6 +97,18 @@ export default class UserValidator {
                 issueDate,
                 expDate
             } = req.body;
+            const isValidIssue = await Helper.isValidDate(issueDate);
+            if (!isValidIssue) {
+                return next(new APIError(
+                    messages.invalidIssueDate, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            const isValidExp = await Helper.isValidDate(expDate);
+            if (!isValidExp) {
+                return next(new APIError(
+                    messages.invalidExpDate, httpStatus.BAD_REQUEST, true
+                ));
+            }
             const licenceDetails = { licenceNo, issueDate, expDate };
             const vehicleDetails = {
                 make,
@@ -187,12 +199,7 @@ export default class UserValidator {
                 uploadImage(insurance, user.email, 'insurance'),
                 uploadImage(vehiclePaper, user.email, 'vehiclePaper')
             ];
-            const start2 = Date.now();
             const values = await Promise.all(tasks);
-            const mark2 = Date.now() - start2;
-            console.log(mark2);
-            console.log(process.memoryUsage());
-            console.log(values);
             user.avatar = values[0].secure_url;
             user.vehicleDetails.licenceDetails.licenceUrl = values[1].secure_url;
             user.vehicleDetails.insuranceUrl = values[2].secure_url;

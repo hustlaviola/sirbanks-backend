@@ -2,12 +2,14 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable import/no-cycle */
 import jwt from 'jsonwebtoken';
+import { v4 as uuid } from 'uuid';
 
 import {
-    clients, sendTripRequestP, reqStatus, pendingRequests, dispatchP
+    clients, reqStatus, pendingRequests, allTripRequests
 } from './index';
-import TripRequest from '../models/TripRequest';
-import { RIDE_REQUEST, TIMEOUT, ERROR } from './events';
+// import TripRequest from '../models/TripRequest';
+// import Trip from '../models/Trip';
+import { RIDE_REQUEST, TIMEOUT, NO_DRIVER_FOUND } from './events';
 
 /**
  * @class
@@ -61,110 +63,58 @@ export default class Helper {
      * @static
      * @param {object} data
      * @param {object} drivers
-     * @param {object} callback
+     * @param {object} quantum
      * @returns {object} JSON response
      * @memberof Helper
      */
-    static async dispatch(data, drivers, callback) {
-        if (drivers.length < 1) {
-            return callback(null, false);
-        }
-        await sendTripRequestP(data, drivers, 10);
-        // log('===============', trip_id);
-        // log(reqStatus[trip_id]);
-        // if (reqStatus[trip_id] != null) {
-        //     return callback(null, reqStatus[trip_id]);
-        // }
-        drivers.shift();
-        return dispatchP(data, drivers, callback);
-    }
-
-    /**
-     * @method sendTripRequest
-     * @description
-     * @static
-     * @param {object} payload
-     * @param {object} drivers
-     * @param {number} quantum
-     * @param {object} callback
-     * @returns {object} JSON response
-     * @memberof Helper
-     */
-    static async sendTripRequest(payload, drivers, quantum, callback) {
+    static async dispatch(data, drivers, quantum) {
         try {
-            const driver = drivers[0];
-            const newRequest = await Helper.createTripRequest(payload, driver);
             const {
-                id, riderId, driverId, pickUp, pickUpLocation, dropOff, dropOffLocation
-            } = newRequest;
-            const riderName = clients[riderId].userInfo.firstName;
+                id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat, dropOffLon, dropOffLat
+            } = data;
+            if (!drivers.length) {
+                return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+            }
+            const driver = drivers.shift();
+            const riderName = clients[id].userInfo.firstName;
             const tripRequest = {
-                tripId: id,
-                riderId,
+                tripId: uuid(),
+                riderId: id,
+                driverId: driver._id,
                 riderName,
-                driverId,
                 pickUp,
-                pickUpLon: pickUpLocation.coordinates[0],
-                pickUpLat: pickUpLocation.coordinates[1],
+                pickUpLon,
+                pickUpLat,
                 dropOff,
-                dropOffLon: dropOffLocation.coordinates[0],
-                dropOffLat: dropOffLocation.coordinates[1]
+                dropOffLon,
+                dropOffLat,
+                paymentMethod
             };
-            reqStatus[tripRequest.tripId] = payload;
-            const newDrivers = [...drivers];
-            newDrivers.shift();
-            tripRequest.newDrivers = newDrivers;
+            reqStatus[tripRequest.tripId] = {
+                reqInfo: data,
+                drivers
+            };
+            allTripRequests[tripRequest.tripId] = { tripRequest };
             if (clients[driver._id]) {
                 clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
-            }
-            console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
-            pendingRequests[tripRequest.tripId] = setInterval(() => {
-                quantum--;
-                console.log(quantum);
-                if (quantum < 1) {
-                    clearInterval(pendingRequests[tripRequest.tripId]);
-                    if (clients[driver._id]) {
-                        clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
+                console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
+                pendingRequests[tripRequest.tripId] = setInterval(() => {
+                    quantum--;
+                    console.log(quantum);
+                    if (quantum < 1) {
+                        clearInterval(pendingRequests[tripRequest.tripId]);
+                        delete pendingRequests[tripRequest.tripId];
+                        if (clients[driver._id]) {
+                            clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
+                        }
+                        return Helper.dispatch(data, drivers, 10);
                     }
-                    reqStatus[tripRequest.tripId] = undefined;
-                    return callback(null, tripRequest.tripId);
-                }
-            }, 1000);
+                }, 1000);
+            } else {
+                return Helper.dispatch(data, drivers, 10);
+            }
         } catch (error) {
             console.log(error);
-            if (clients[payload.id]) {
-                return clients[payload.id].emit(ERROR, 'Error while creating trip request');
-            }
-            return false;
         }
-    }
-
-    /**
-     * @method createTripRequest
-     * @description
-     * @static
-     * @param {object} payload
-     * @param {object} driver
-     * @returns {object} JSON response
-     * @memberof Helper
-     */
-    static async createTripRequest(payload, driver) {
-        const {
-            id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat, dropOffLon, dropOffLat
-        } = payload;
-        const pickUpLocation = { coordinates: [Number(pickUpLon), Number(pickUpLat)] };
-        const dropOffLocation = { coordinates: [Number(dropOffLon), Number(dropOffLat)] };
-        const request = {
-            riderId: id,
-            driverId: driver._id,
-            pickUp,
-            pickUpLocation,
-            dropOff,
-            dropOffLocation,
-            status: 'pending',
-            paymentMethod
-        };
-        const tripRequest = await TripRequest.create(request);
-        return tripRequest;
     }
 }
