@@ -11,10 +11,6 @@ const TripSchema = new mongoose.Schema({
         ref: 'drivers',
         required: true
     },
-    tripId: {
-        type: String,
-        required: true
-    },
     pickUp: {
         type: String
     },
