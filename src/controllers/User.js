@@ -27,10 +27,10 @@ export default class UserController {
     static async register(req, res, next) {
         try {
             let { user } = req;
-            const { isDriver } = req;
+            const { isDriver, role } = req;
             user = await UserService.createUser(user, isDriver);
             const {
-                id, firstName, email, role
+                id, firstName, email
             } = user;
             let token;
             if (isDriver) {
@@ -55,6 +55,7 @@ export default class UserController {
 
             return response(res, httpStatus.CREATED, messages.riderAccount);
         } catch (error) {
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -74,7 +75,7 @@ export default class UserController {
             const { user } = req;
             user.onboardingStatus = 'vehicle_details';
             await user.save();
-            const token = await Helper.generateToken({ id: user.id });
+            const token = await Helper.generateToken({ id: user.id, role: 'driver' });
             const payload = {
                 token,
                 onboardingStatus: 'vehicle_details',
@@ -82,7 +83,7 @@ export default class UserController {
             };
             return response(res, httpStatus.OK, messages.vehicleDetails, payload);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -101,7 +102,7 @@ export default class UserController {
         try {
             const { user } = req;
             await user.save();
-            const token = await Helper.generateToken({ id: user.id });
+            const token = await Helper.generateToken({ id: user.id, role: 'driver' });
             const payload = {
                 token,
                 onboardingStatus: user.onboardingStatus,
@@ -109,6 +110,7 @@ export default class UserController {
             };
             return response(res, httpStatus.OK, messages.onboardingCompleted, payload);
         } catch (error) {
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

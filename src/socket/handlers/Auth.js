@@ -68,27 +68,88 @@ export default class Auth {
             let user;
             if (role === 'driver') {
                 user = await Driver.findById(id);
-                if (!user) return socket.emit(ERROR, 'User not found');
+                if (!user) {
+                    socket.emit(ERROR, 'User not found');
+                    return socket.disconnect();
+                }
                 socket.isDriver = true;
                 user.isOnline = true;
                 await user.save();
-                const {
-                    firstName, email, avatar, vehicleDetails
-                } = user;
-                socket.userInfo = {
-                    firstName, email, avatar, vehicleDetails
-                };
             } else {
                 user = await Rider.findById(id);
-                if (!user) return socket.emit(ERROR, 'User not found');
-                socket.userInfo = {
-                    email: user.email, firstName: user.firstName
-                };
+                if (!user) {
+                    socket.emit(ERROR, 'User not found');
+                    return socket.disconnect();
+                }
             }
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
         } catch (error) {
-            console.log(error);
+            console.error(error);
+        }
+    }
+
+    /**
+     * @method authenticate
+     * @description
+     * @static
+     * @param {object} socket - Request object
+     * @param {object} token - Response object
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async authenticate(socket, { token }) {
+        try {
+            if (!token) {
+                log('token is required');
+                socket.emit(ERROR, 'token is required');
+                return socket.disconnect();
+            }
+            token = token.replace('Bearer ', '');
+            if (!validator.isJWT(token)) {
+                log('Invalid token');
+                socket.emit(ERROR, 'Invalid token');
+                return socket.disconnect();
+            }
+            const { id, role } = await Helper.decodeToken(token);
+            if (!id || !role) {
+                log('Invalid token');
+                socket.emit(ERROR, 'Invalid token');
+                return socket.disconnect();
+            }
+            if (!validator.isMongoId(id)) {
+                log('Invalid id');
+                socket.emit(ERROR, 'Invalid id');
+                return socket.disconnect();
+            }
+            const validRoles = ['rider', 'driver'];
+            if (!validRoles.includes(role)) {
+                log('Invalid role');
+                socket.emit(ERROR, 'Invalid role');
+                return socket.disconnect();
+            }
+            if (
+                Object.prototype.hasOwnProperty.call(clients, id) && clients[id].id !== socket.id
+            ) {
+                clients[id].disconnect();
+            }
+            socket.jid = id;
+            socket.isDriver = false;
+            let user;
+            if (role === 'driver') {
+                user = await Driver.findById(id);
+                if (!user) return socket.emit(ERROR, 'User not found');
+                socket.isDriver = true;
+                user.isOnline = true;
+                await user.save();
+            } else {
+                user = await Rider.findById(id);
+                if (!user) return socket.emit(ERROR, 'User not found');
+            }
+            clients[id] = socket;
+            return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
+        } catch (error) {
+            console.error(error);
         }
     }
 

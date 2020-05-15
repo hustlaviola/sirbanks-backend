@@ -158,7 +158,10 @@ export default class Auth {
                     messages.notVerified, httpStatus.UNAUTHORIZED, true
                 ));
             }
+            user.lastLoggedInAt = new Date();
+            await user.save();
             req.user = user;
+            req.role = role;
             return next();
         } catch (error) {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));

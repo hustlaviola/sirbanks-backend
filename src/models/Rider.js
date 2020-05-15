@@ -25,6 +25,29 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
+    myPublicId: {
+        type: String,
+        required: true
+    },
+    location: {
+        type: {
+            type: String,
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            default: [0, 0]
+        }
+    },
+    currentTripId: {
+        type: String,
+        default: null
+    },
+    currentTripStatus: {
+        type: String,
+        default: 'none',
+        enum: ['none', 'accepted', 'canceled', 'transit', 'ended']
+    },
     walletBalance: {
         type: Number,
         default: 0
@@ -32,6 +55,9 @@ const RiderSchema = new Schema({
     isEmailVerified: {
         type: Boolean,
         default: false
+    },
+    lastLoggedInAt: {
+        type: Date
     },
     createdAt: {
         type: Date,

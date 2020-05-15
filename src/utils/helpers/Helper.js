@@ -30,8 +30,7 @@ export default class Helper {
      * @memberof Helper
      */
     static async encryptPassword(password) {
-        const salt = await bcrypt.genSalt(10);
-        return bcrypt.hash(password, salt);
+        return bcrypt.hash(password, 12);
     }
 
     /**

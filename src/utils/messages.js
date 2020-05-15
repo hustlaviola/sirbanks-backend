@@ -30,7 +30,8 @@ const messages = {
     alreadyCompletedOnboarding: 'Onboarding already completed',
     alreadyUpdateVehicleDetails: 'Already updated vehicle details',
     invalidIssueDate: 'Invalid issueDate',
-    invalidExpDate: 'Invalid expDate'
+    invalidExpDate: 'Invalid expDate',
+    fileLimitReached: 'File size exceeds 10mb'
 };
 
 export default messages;
