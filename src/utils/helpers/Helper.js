@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
+import moment from 'moment';
 
 /**
  * @class Helper
@@ -71,6 +72,20 @@ export default class Helper {
      */
     static async checkImage(files, name) {
         if (!files || !Object.prototype.hasOwnProperty.call(files, name)) return false;
+        return true;
+    }
+
+    /**
+     * @method isValidDate
+     * @description Check if date is valid
+     * @static
+     * @param {object} date
+     * @returns {boolean} Boolean response
+     * @memberof Helper
+     */
+    static async isValidDate(date) {
+        const theDate = new Date(date);
+        if (!moment(theDate).isValid()) return false;
         return true;
     }
 }

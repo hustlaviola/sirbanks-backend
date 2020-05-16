@@ -116,8 +116,8 @@ export default class AuthController {
     static async login(req, res, next) {
         try {
             const { user } = req;
-            const { id } = user;
-            const payload = { id };
+            const { id, role } = user;
+            const payload = { id, role };
             const token = await Helper.generateToken(payload);
             const userDTO = {
                 id: user.id,

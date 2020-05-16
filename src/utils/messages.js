@@ -28,7 +28,9 @@ const messages = {
     vehicleDetails: 'Vehicle details updated successfully',
     onboardingCompleted: 'Driver onboarding completed',
     alreadyCompletedOnboarding: 'Onboarding already completed',
-    alreadyUpdateVehicleDetails: 'Already updated vehicle details'
+    alreadyUpdateVehicleDetails: 'Already updated vehicle details',
+    invalidIssueDate: 'Invalid issueDate',
+    invalidExpDate: 'Invalid expDate'
 };
 
 export default messages;

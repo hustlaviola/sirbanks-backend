@@ -11,6 +11,10 @@ const TripSchema = new mongoose.Schema({
         ref: 'drivers',
         required: true
     },
+    tripId: {
+        type: String,
+        required: true
+    },
     pickUp: {
         type: String
     },
@@ -37,11 +41,24 @@ const TripSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['accepted', 'cancelled', 'transit', 'ended']
+        default: 'accepted',
+        enum: ['accepted', 'canceled', 'transit', 'ended']
+    },
+    startTime: {
+        type: Date
+    },
+    endTime: {
+        type: Date
     },
     paymentMethod: {
         type: String,
         enum: ['cash', 'card', 'wallet']
+    },
+    distance: {
+        type: Number
+    },
+    fare: {
+        type: Number
     },
     createdAt: {
         type: Date,
