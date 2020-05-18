@@ -1,20 +1,26 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable no-plusplus */
 import SocketIO from 'socket.io';
+import debug from 'debug';
 import AuthHandler from './handlers/Auth';
 import TripHandler from './handlers/Trip';
+import ChatHandler from './handlers/Chat';
 import {
+    AUTH,
     UPDATE_LOCATION,
     UPDATE_AVAILABILITY,
     REQUEST_RIDE,
     REQUEST_ACCEPTED,
-    REQUEST_REJECTED
+    REQUEST_REJECTED,
+    PRIVATE_MESSAGE
 } from './events';
 
 export const clients = {};
 export const reqStatus = {};
 export const pendingRequests = {};
 export const allTripRequests = {};
+
+const log = debug('app:index');
 
 /**
  * @class
@@ -38,9 +44,9 @@ export default class SocketServer {
         io.sockets.on('connection', socket => {
             connectCounter++;
             const { token } = socket.handshake.query;
+            log(`${connectCounter} client(s) connected`);
             AuthHandler.conn(socket, token);
-            console.log(`${connectCounter} client(s) connected`);
-            // socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
+            socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
 
             socket.on(UPDATE_LOCATION, data => TripHandler.updateLocation(socket, data));
 
@@ -50,11 +56,13 @@ export default class SocketServer {
 
             socket.on(REQUEST_ACCEPTED, data => TripHandler.requestAccepted(socket, data));
 
-            socket.on(REQUEST_REJECTED, data => TripHandler.requestRejected(data));
+            socket.on(REQUEST_REJECTED, data => TripHandler.requestRejected(socket, data));
+
+            socket.on(PRIVATE_MESSAGE, data => ChatHandler.privateMessage(socket, data));
 
             socket.on('disconnect', () => {
                 connectCounter--;
-                console.log(`${connectCounter} client(s) connected`);
+                log(`${connectCounter} client(s) connected`);
                 AuthHandler.disconnectUser(socket);
             });
         });

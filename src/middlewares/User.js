@@ -1,5 +1,6 @@
 /* eslint-disable no-plusplus */
 import httpStatus from 'http-status';
+import { v4 as uuid } from 'uuid';
 
 import UserService from '../services/UserService';
 import Helper from '../utils/helpers/Helper';
@@ -45,32 +46,27 @@ export default class UserValidator {
             }
             let { password } = req.body;
             password = await Helper.encryptPassword(password);
-            let user;
-            if (req.url.includes('rider')) {
-                user = {
-                    firstName,
-                    lastName,
-                    email,
-                    phone,
-                    password,
-                    avatar: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
-                };
-                req.isDriver = false;
-            } else {
-                user = {
-                    firstName,
-                    lastName,
-                    email,
-                    phone,
-                    password,
-                    onboardingStatus: 'initiated'
-                };
+            const myPublicId = uuid();
+            const user = {
+                firstName,
+                lastName,
+                email,
+                phone,
+                password,
+                myPublicId,
+                avatar: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
+            };
+            req.isDriver = false;
+            req.role = 'rider';
+            if (req.url.includes('initiate')) {
+                user.onboardingStatus = 'initiated';
                 req.isDriver = true;
+                req.role = 'driver';
             }
             req.user = user;
             return next();
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -133,7 +129,7 @@ export default class UserValidator {
             req.user = user;
             return next();
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -194,10 +190,10 @@ export default class UserValidator {
             // console.log(mark);
             // console.log(process.memoryUsage());
             const tasks = [
-                uploadImage(avatar, user.email, 'avatar'),
-                uploadImage(licence, user.email, 'licence'),
-                uploadImage(insurance, user.email, 'insurance'),
-                uploadImage(vehiclePaper, user.email, 'vehiclePaper')
+                uploadImage(avatar, user.myPublicId, 'avatar'),
+                uploadImage(licence, user.myPublicId, 'licence'),
+                uploadImage(insurance, user.myPublicId, 'insurance'),
+                uploadImage(vehiclePaper, user.myPublicId, 'vehiclePaper')
             ];
             const values = await Promise.all(tasks);
             user.avatar = values[0].secure_url;
@@ -208,7 +204,7 @@ export default class UserValidator {
             req.user = user;
             return next();
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

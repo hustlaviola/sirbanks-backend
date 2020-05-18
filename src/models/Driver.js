@@ -28,6 +28,10 @@ const DriverSchema = new Schema({
     avatar: {
         type: String
     },
+    myPublicId: {
+        type: String,
+        required: true
+    },
     isEmailVerified: {
         type: Boolean,
         default: false
@@ -105,6 +109,9 @@ const DriverSchema = new Schema({
     walletBalance: {
         type: Number,
         default: 0
+    },
+    lastLoggedInAt: {
+        type: Date
     },
     createdAt: {
         type: Date,

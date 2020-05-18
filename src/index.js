@@ -32,6 +32,11 @@ app.use(compression());
 
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(fileupload({
+    limits: {
+        fileSize: 10 * 1024 * 1024
+    },
+    abortOnLimit: true,
+    responseOnLimit: messages.fileLimitReached,
     useTempFiles: true
 }));
 
