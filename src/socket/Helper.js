@@ -69,6 +69,7 @@ export default class Helper {
      */
     static async dispatch(data, drivers, quantum) {
         try {
+            console.log(drivers);
             const {
                 id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat, dropOffLon, dropOffLat
             } = data;
@@ -76,12 +77,10 @@ export default class Helper {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
             const driver = drivers.shift();
-            const riderName = clients[id].userInfo.firstName;
             const tripRequest = {
                 tripId: uuid(),
                 riderId: id,
                 driverId: driver._id,
-                riderName,
                 pickUp,
                 pickUpLon,
                 pickUpLat,
@@ -94,7 +93,7 @@ export default class Helper {
                 reqInfo: data,
                 drivers
             };
-            allTripRequests[tripRequest.tripId] = { tripRequest };
+            allTripRequests[tripRequest.tripId] = tripRequest;
             if (clients[driver._id]) {
                 clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
                 console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
@@ -107,11 +106,15 @@ export default class Helper {
                         if (clients[driver._id]) {
                             clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
                         }
-                        return Helper.dispatch(data, drivers, 10);
+                        delete reqStatus[tripRequest.tripId];
+                        delete allTripRequests[tripRequest.tripId];
+                        return Helper.dispatch(data, drivers, 15);
                     }
                 }, 1000);
             } else {
-                return Helper.dispatch(data, drivers, 10);
+                delete reqStatus[tripRequest.tripId];
+                delete allTripRequests[tripRequest.tripId];
+                return Helper.dispatch(data, drivers, 15);
             }
         } catch (error) {
             console.log(error);

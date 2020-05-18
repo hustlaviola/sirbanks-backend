@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable import/no-cycle */
 import validator from 'validator';
 import debug from 'debug';
@@ -12,7 +13,8 @@ import {
     TRIP_STARTED,
     DESTINATION_UPDATED,
     TRIP_CANCELED,
-    TRIP_ENDED
+    TRIP_ENDED,
+    REQUEST_ACCEPTED
 } from '../events';
 import Driver from '../../models/Driver';
 import Rider from '../../models/Rider';
@@ -71,23 +73,22 @@ export default class TripHandler {
                 rider.location = location;
                 const { firstName, currentTripId, currentTripStatus } = rider;
                 if (currentTripId && currentTripStatus === 'accepted') {
-                    const trip = await Trip.findOne({ currentTripId });
+                    const trip = await Trip.findById(currentTripId);
                     if (!trip) {
                         return Helper.emitByID(id, ERROR, 'Trip not found');
                     }
-                    const { driverId, pickUpLocation } = trip;
+                    const { driverId } = trip;
                     if (clients[driverId]) {
-                        const compLon = pickUpLocation.coordinates[0];
-                        const compLat = pickUpLocation.coordinates[1];
-                        const distance = getDistance(
-                            { latitude: compLat, longitude: compLon },
-                            { latitude: lat, longitude: lon }
+                        // const compLon = pickUpLocation.coordinates[0];
+                        // const compLat = pickUpLocation.coordinates[1];
+                        // const distance = getDistance(
+                        //     { latitude: compLat, longitude: compLon },
+                        //     { latitude: lat, longitude: lon }
+                        // );
+                        const riderDetails = { iderName: firstName, lon, lat };
+                        Helper.emitByID(
+                            trip.driverId, RIDER_LOCATION_UPDATED, JSON.stringify(riderDetails)
                         );
-                        const riderDetails = {
-                            riderName: firstName, lon, lat, distance
-                        };
-                        console.log(distance);
-                        Helper.emitByID(RIDER_LOCATION_UPDATED, JSON.stringify(riderDetails));
                     }
                 }
                 return rider.save();
@@ -101,34 +102,40 @@ export default class TripHandler {
             const validTripStatus = ['accepted', 'transit'];
             const { currentTripId, currentTripStatus } = driver;
             if (currentTripId && validTripStatus.includes(currentTripStatus)) {
-                const trip = await Trip.findOne({ currentTripId });
+                const trip = await Trip.findById(currentTripId);
                 if (!trip) {
                     return Helper.emitByID(id, ERROR, 'Trip not found');
                 }
                 if (clients[trip.riderId]) {
-                    const {
-                        firstName, avatar, vehicleDetails
-                    } = driver;
-                    const { pickUpLocation, dropOffLocation } = trip;
-                    const compLon = currentTripStatus === 'accepted'
-                        ? pickUpLocation.coordinates[0] : dropOffLocation.coordinates[0];
-                    const compLat = currentTripStatus === 'accepted'
-                        ? pickUpLocation.coordinates[1] : dropOffLocation.coordinates[1];
-                    const distance = getDistance(
-                        { latitude: compLat, longitude: compLon },
-                        { latitude: lat, longitude: lon }
-                    );
-                    console.log(distance);
-                    let status = '';
-                    if (distance <= 200) {
-                        status = 'Arrived';
-                    } else if (distance <= 600) {
-                        status = 'Arriving';
-                    } else if (currentTripStatus === 'accepted') {
-                        status = 'Enroute';
-                    }
+                    const { firstName, avatar } = driver;
+                    let { vehicleDetails } = driver;
+                    vehicleDetails = {
+                        make: vehicleDetails.make,
+                        model: vehicleDetails.model,
+                        year: vehicleDetails.year,
+                        color: vehicleDetails.color,
+                        numberPlate: vehicleDetails.numberPlate
+                    };
+                    // const { pickUpLocation, dropOffLocation } = trip;
+                    // const compLon = currentTripStatus === 'accepted'
+                    //     ? pickUpLocation.coordinates[0] : dropOffLocation.coordinates[0];
+                    // const compLat = currentTripStatus === 'accepted'
+                    //     ? pickUpLocation.coordinates[1] : dropOffLocation.coordinates[1];
+                    // const distance = getDistance(
+                    //     { latitude: compLat, longitude: compLon },
+                    //     { latitude: lat, longitude: lon }
+                    // );
+                    // console.log(distance);
+                    // let status = '';
+                    // if (distance <= 200) {
+                    //     status = 'Arrived';
+                    // } else if (distance <= 600) {
+                    //     status = 'Arriving';
+                    // } else if (currentTripStatus === 'accepted') {
+                    //     status = 'Enroute';
+                    // }
                     const driverDetails = {
-                        driverName: firstName, avatar, lon, lat, distance, status, vehicleDetails
+                        driverName: firstName, avatar, lon, lat, vehicleDetails
                     };
                     Helper.emitByID(
                         trip.riderId, DRIVER_LOCATION_UPDATED, JSON.stringify(driverDetails)
@@ -212,6 +219,9 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid paymentMethod');
             }
             let { pickUp, dropOff } = data;
+            if (!pickUp || !dropOff) {
+                return socket.emit(ERROR, 'pickUp/dropOff is required');
+            }
             pickUp = pickUp.trim().replace(/  +/g, ' ');
             dropOff = dropOff.trim().replace(/  +/g, ' ');
             data.pickUp = pickUp;
@@ -237,7 +247,7 @@ export default class TripHandler {
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
-            return Helper.dispatch(data, drivers, 10);
+            return Helper.dispatch(data, drivers, 20);
         } catch (error) {
             console.error(error);
         }
@@ -288,24 +298,23 @@ export default class TripHandler {
                 pickUpLocation,
                 dropOff,
                 dropOffLocation,
-                tripId,
                 status: 'accepted',
                 paymentMethod
             };
             const driver = await Driver.findById(id);
-            const rider = await Rider.findById(id);
+            const rider = await Rider.findById(riderId);
             // const values = await Promise.all([Driver.findById(id), Rider.findById(id)]);
             // const driver = values[0];
             // const rider = values[1];
             if (!driver) return socket.emit(ERROR, 'Driver not found');
             if (!rider) return socket.emit(ERROR, 'Rider does not exists');
+            trip = await Trip.create(trip);
             driver.currentTripStatus = 'accepted';
-            driver.currentTripId = tripId;
+            driver.currentTripId = trip._id;
             rider.currentTripStatus = 'accepted';
-            rider.currentTripId = tripId;
+            rider.currentTripId = trip._id;
             await driver.save();
             await rider.save();
-            trip = await Trip.create(trip);
 
             // If the rider is still online
             const { firstName, avatar } = driver;
@@ -325,7 +334,7 @@ export default class TripHandler {
                 driverName: firstName, avatar, lon, lat, distance, vehicleDetails
             };
             const newTrip = {
-                tripId,
+                tripId: trip._id,
                 riderId,
                 driverId: trip.driverId,
                 avatar,
@@ -341,7 +350,7 @@ export default class TripHandler {
             Helper.emitByID(riderId, DRIVER_FOUND, JSON.stringify(newTrip));
             console.log('Request accepted');
             delete allTripRequests[tripId];
-            return Helper.emitByID(id, SUCCESS, 'You have successfully accepted the request');
+            return Helper.emitByID(id, REQUEST_ACCEPTED, JSON.stringify(newTrip));
         } catch (error) {
             console.error(error);
         }
@@ -368,13 +377,17 @@ export default class TripHandler {
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
             }
+            if (!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]) {
+                return socket.emit(ERROR, 'The trip request you rejected was not found');
+            }
             clearInterval(pendingRequests[tripId]);
             delete pendingRequests[tripId];
             const reqObj = { ...reqStatus[tripId] };
             delete reqStatus[tripId];
+            delete allTripRequests[tripId];
             const { reqInfo, drivers } = reqObj;
             Helper.emitByID(id, SUCCESS, 'You have successfully rejected the request');
-            return Helper.dispatch(reqInfo, drivers, 10);
+            return Helper.dispatch(reqInfo, drivers, 20);
         } catch (error) {
             console.error(error);
         }
@@ -419,10 +432,16 @@ export default class TripHandler {
                     id, ERROR, 'The trip you tried to start wasn\'t assigned to you'
                 );
             }
+            const rider = await Rider.findById(trip.riderId);
+            if (!rider) {
+                return Helper.emitById(id, ERROR, 'Driver not found');
+            }
             const startTime = new Date();
             trip.startTime = startTime;
             trip.status = 'transit';
             driver.currentTripStatus = 'transit';
+            rider.currentTripStatus = 'transit';
+            await rider.save();
             const saveTasks = [trip.save(), driver.save()];
             await Promise.all(saveTasks);
             const driverDetails = {

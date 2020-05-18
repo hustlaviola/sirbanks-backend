@@ -47,10 +47,12 @@ const DriverSchema = new Schema({
         }
     },
     isOnline: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     isAvailable: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     vehicleDetails: {
         make: {
@@ -98,7 +100,8 @@ const DriverSchema = new Schema({
         default: false
     },
     currentTripId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'trips',
         default: null
     },
     currentTripStatus: {

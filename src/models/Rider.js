@@ -40,7 +40,8 @@ const RiderSchema = new Schema({
         }
     },
     currentTripId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'trips',
         default: null
     },
     currentTripStatus: {
@@ -65,6 +66,7 @@ const RiderSchema = new Schema({
     }
 });
 
+RiderSchema.index({ location: '2dsphere' });
 const Rider = mongoose.model('rider', RiderSchema);
 
 export default Rider;
