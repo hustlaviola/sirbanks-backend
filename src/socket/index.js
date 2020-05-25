@@ -12,7 +12,9 @@ import {
     REQUEST_RIDE,
     REQUEST_ACCEPTED,
     REQUEST_REJECTED,
-    PRIVATE_MESSAGE
+    PRIVATE_MESSAGE,
+    CANCEL_TRIP,
+    UPDATE_DESTINATION
 } from './events';
 
 export const clients = {};
@@ -58,6 +60,10 @@ export default class SocketServer {
             socket.on(REQUEST_ACCEPTED, data => TripHandler.requestAccepted(socket, data));
 
             socket.on(REQUEST_REJECTED, data => TripHandler.requestRejected(socket, data));
+
+            socket.on(CANCEL_TRIP, data => TripHandler.cancelTrip(socket, data));
+
+            socket.on(UPDATE_DESTINATION, data => TripHandler.updateDestination(socket, data));
 
             socket.on(PRIVATE_MESSAGE, data => ChatHandler.privateMessage(socket, data));
 
