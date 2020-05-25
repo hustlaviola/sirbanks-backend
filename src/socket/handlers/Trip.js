@@ -85,7 +85,7 @@ export default class TripHandler {
                         //     { latitude: compLat, longitude: compLon },
                         //     { latitude: lat, longitude: lon }
                         // );
-                        const riderDetails = { iderName: firstName, lon, lat };
+                        const riderDetails = { riderName: firstName, lon, lat };
                         Helper.emitByID(
                             trip.driverId, RIDER_LOCATION_UPDATED, JSON.stringify(riderDetails)
                         );

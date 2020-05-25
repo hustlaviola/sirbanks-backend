@@ -4,10 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "export DEBUG=app:* && pm2 start build/index.js",
-    "clean": "rm -rf build && mkdir build",
-    "build-babel": "babel ./src --out-dir build",
-    "build": "npm run clean && npm run build-babel",
+    "start": "node build/index.js",
+    "build": "babel ./src --out-dir build",
     "dev": "export DEBUG=app:* && cross-env NODE_ENV=development nodemon ./src --exec babel-node",
     "lint": "eslint . --ext .js",
     "lint:fix": "npm run lint -- --fix"
