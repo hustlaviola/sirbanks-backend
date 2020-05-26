@@ -200,7 +200,7 @@ export default class TripHandler {
     static async requestRide(socket, data) {
         try {
             const {
-                id, pickUpLon, pickUpLat, dropOffLon, dropOffLat, paymentMethod
+                id, pickUpLon, pickUpLat, dropOffLon, dropOffLat
             } = data;
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
@@ -214,11 +214,12 @@ export default class TripHandler {
             if (!validator.isLatLong(`${dropOffLat}, ${dropOffLon}`)) {
                 return socket.emit(ERROR, 'Invalid dropOff coordinates(lat/lon)');
             }
+            let { pickUp, dropOff, paymentMethod } = data;
+            paymentMethod = paymentMethod.toLowerCase();
             const validPaymentMethods = ['cash', 'card', 'wallet'];
             if (!validPaymentMethods.includes(paymentMethod)) {
                 return socket.emit(ERROR, 'Invalid paymentMethod');
             }
-            let { pickUp, dropOff } = data;
             if (!pickUp || !dropOff) {
                 return socket.emit(ERROR, 'pickUp/dropOff is required');
             }
