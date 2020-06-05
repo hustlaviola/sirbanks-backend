@@ -25,8 +25,8 @@ export default class AuthController {
      */
     static async sendPhoneCode(req, res, next) {
         try {
-            const result = await AuthService.sendPhoneCode(req);
-            return response(res, httpStatus.OK, messages.phoneCode, result);
+            await AuthService.sendPhoneCode(req);
+            return response(res, httpStatus.OK, messages.phoneCode);
         } catch (error) {
             console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
@@ -46,7 +46,10 @@ export default class AuthController {
     static async verifyPhone(req, res, next) {
         try {
             const result = await AuthService.verifyPhone(req);
-            return response(res, httpStatus.OK, messages.phoneVerified, result);
+            if (result.status !== 'approved') {
+                return next(new APIError('Please provide a valid otp', httpStatus.BAD_REQUEST, true));
+            }
+            return response(res, httpStatus.OK, messages.phoneVerified);
         } catch (error) {
             console.error(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));

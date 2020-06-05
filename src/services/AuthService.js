@@ -56,7 +56,7 @@ export default class AuthService {
 
     /**
      * @method sendPhoneCode
-     * @description Check if token exists in the database
+     * @description
      * @static
      * @param {object} req
      * @returns {object} JSON response
@@ -76,7 +76,7 @@ export default class AuthService {
 
     /**
      * @method verifyPhone
-     * @description Check if token exists in the database
+     * @description
      * @static
      * @param {object} req
      * @returns {object} JSON response
