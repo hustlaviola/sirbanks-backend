@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import moment from 'moment';
+import validator from 'validator';
 
 /**
  * @class Helper
@@ -85,6 +86,23 @@ export default class Helper {
     static async isValidDate(date) {
         const theDate = new Date(date);
         if (!moment(theDate).isValid()) return false;
+        return true;
+    }
+
+    /**
+     * @method isValidKey
+     * @description Check if key is valid
+     * @static
+     * @param {object} key
+     * @param {object} keyType
+     * @returns {boolean} Boolean response
+     * @memberof Helper
+     */
+    static isValidKey(key, keyType) {
+        const type = key.substr(0, 3);
+        if (type !== keyType) return false;
+        const keyId = key.substr(3);
+        if (!validator.isUUID(keyId)) return false;
         return true;
     }
 }

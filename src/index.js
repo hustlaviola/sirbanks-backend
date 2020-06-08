@@ -12,7 +12,7 @@ import http from 'http';
 import connectDB from './config/db';
 import messages from './utils/messages';
 import {
-    riderRouter, driverRouter, authRouter
+    driverRouter, authRouter, onboardingRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
@@ -51,7 +51,7 @@ app.use(trimmer);
 
 app.set('view engine', 'ejs');
 
-app.use('/api/v1/users', riderRouter);
+app.use('/api/v1/onboarding', onboardingRouter);
 app.use('/api/v1/drivers', driverRouter);
 app.use('/api/v1/auth', authRouter);
 

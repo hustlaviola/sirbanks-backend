@@ -1,6 +1,11 @@
 const messages = {
     root: 'Welcome to sirbanks api',
     pageNotFound: 'You seem lost, may the force help you find your way back',
+    onboardingInit: 'Onboarding already initiated',
+    provideValidOtp: 'Please provide a valid otp',
+    onboardingComplete: 'Onboarding completed successfully',
+    invalidDob: 'Invalid date of birth',
+    invalidUserRef: 'Invalid user reference',
     emailInUse: 'email is already in use',
     phoneInUse: 'phone is already in use',
     userNotFound: 'User not found',

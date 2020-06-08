@@ -7,11 +7,11 @@ import AuthValidator from '../middlewares/Auth';
 
 const router = express.Router();
 
-router.post('/onboarding/initiate',
-    validator('register'),
-    validate,
-    UserValidator.validateUserReg,
-    UserController.register);
+// router.post('/onboarding/initiate',
+//     validator('register'),
+//     validate,
+//     UserValidator.validateUserReg,
+//     UserController.register);
 
 router.post('/onboarding/vehicle_details',
     AuthValidator.userAuth,

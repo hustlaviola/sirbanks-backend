@@ -12,7 +12,6 @@ export default class UserService {
      * @description Check if email already exists
      * @static
      * @param {string} email - Email being queried
-     * @param {string} role
      * @returns {object} JSON response
      * @memberof UserService
      */
@@ -80,5 +79,24 @@ export default class UserService {
             return Rider.findById(id).select('-password');
         }
         return Driver.findById(id).select('-password');
+    }
+
+    /**
+     * @method findUserByReference
+     * @description
+     * @static
+     * @param {string} referenceId
+     * @returns {object} JSON response
+     * @memberof OnboardingService
+     */
+    static async findUserByReference(referenceId) {
+        const rider = await Rider.findOne({ referenceId });
+        if (rider) {
+            rider.role = 'rider';
+            return rider;
+        }
+        const driver = await Driver.findOne({ referenceId });
+        if (driver) driver.role = 'driver';
+        return driver;
     }
 }

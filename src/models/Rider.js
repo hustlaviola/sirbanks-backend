@@ -5,20 +5,16 @@ const { Schema } = mongoose;
 const RiderSchema = new Schema({
     email: {
         type: String,
-        required: true,
         unique: true
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
     firstName: {
-        type: String,
-        required: true
+        type: String
     },
     lastName: {
-        type: String,
-        required: true
+        type: String
     },
     phone: {
         type: String,
@@ -27,7 +23,13 @@ const RiderSchema = new Schema({
     },
     myPublicId: {
         type: String,
-        required: true
+        required: true,
+        unique: true
+    },
+    referenceId: {
+        type: String,
+        required: true,
+        unique: true
     },
     location: {
         type: {
@@ -48,6 +50,11 @@ const RiderSchema = new Schema({
         type: String,
         default: 'none',
         enum: ['none', 'accepted', 'canceled', 'transit', 'ended']
+    },
+    onboardingStatus: {
+        type: String,
+        default: 'initiated',
+        enum: ['initiated', 'completed']
     },
     walletBalance: {
         type: Number,

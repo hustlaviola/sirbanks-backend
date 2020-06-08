@@ -1,7 +1,7 @@
-import riderRouter from './rider';
 import driverRouter from './driver';
 import authRouter from './auth';
+import onboardingRouter from './onboarding';
 
 export {
-    riderRouter, driverRouter, authRouter
+    driverRouter, authRouter, onboardingRouter
 };

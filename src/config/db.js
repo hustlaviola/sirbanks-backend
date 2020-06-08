@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import debug from 'debug';
 import dotenv from 'dotenv';
+
+import { debug } from './logger';
 
 dotenv.config();
 

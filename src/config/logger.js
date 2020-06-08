@@ -1,4 +1,5 @@
 import winston from 'winston';
+import debug from 'debug';
 
 const winstonInstance = new winston.createLogger({
     transports: [
@@ -10,3 +11,4 @@ const winstonInstance = new winston.createLogger({
 });
 
 export default winstonInstance;
+export { debug };

@@ -12,14 +12,14 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
  */
 export default class AuthService {
     /**
-     * @method regToken
+     * @method createRegToken
      * @description Generates a token for email service
      * @static
      * @param {object} userId - id of the user
      * @returns {object} JSON response
      * @memberof AuthService
      */
-    static regToken(userId) {
+    static createRegToken(userId) {
         // Create a email verification token
         const token = { userId, token: crypto.randomBytes(16).toString('hex') };
         return Token.create(token);
