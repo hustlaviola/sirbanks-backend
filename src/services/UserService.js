@@ -12,7 +12,6 @@ export default class UserService {
      * @description Check if email already exists
      * @static
      * @param {string} email - Email being queried
-     * @param {string} role
      * @returns {object} JSON response
      * @memberof UserService
      */
@@ -38,18 +37,34 @@ export default class UserService {
 
     /**
      * @method findByEmailnRole
-     * @description Check user by email and role
+     * @description Find user by email and role
      * @static
      * @param {string} email - Email being queried
      * @param {string} role
      * @returns {object} JSON response
      * @memberof UserService
      */
-    static async findByEmailnRole(email, role) {
+    static async findByEmailAndRole(email, role) {
         if (role === 'rider') {
             return Rider.findOne({ email });
         }
         return Driver.findOne({ email });
+    }
+
+    /**
+     * @method findByPhonenRole
+     * @description Find user by phone and role
+     * @static
+     * @param {string} phone
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async findByPhoneAndRole(phone, role) {
+        if (role === 'rider') {
+            return Rider.findOne({ phone });
+        }
+        return Driver.findOne({ phone });
     }
 
     /**
@@ -67,7 +82,7 @@ export default class UserService {
     }
 
     /**
-     * @method findById
+     * @method findByIdAndRole
      * @description Find a user by Id
      * @static
      * @param {string} id - User id
@@ -75,10 +90,43 @@ export default class UserService {
      * @returns {object} JSON response
      * @memberof LionService
      */
-    static findById(id, role) {
+    static findByIdAndRole(id, role) {
         if (role === 'rider') {
             return Rider.findById(id).select('-password');
         }
         return Driver.findById(id).select('-password');
+    }
+
+    /**
+     * @method findById
+     * @description Find a user by Id
+     * @static
+     * @param {string} id - User id
+     * @returns {object} JSON response
+     * @memberof LionService
+     */
+    static async findById(id) {
+        const exist = await Rider.findById(id);
+        if (exist) return exist;
+        return Driver.findById(id);
+    }
+
+    /**
+     * @method findUserByReference
+     * @description
+     * @static
+     * @param {string} referenceId
+     * @returns {object} JSON response
+     * @memberof OnboardingService
+     */
+    static async findUserByReference(referenceId) {
+        const rider = await Rider.findOne({ referenceId });
+        if (rider) {
+            rider.role = 'rider';
+            return rider;
+        }
+        const driver = await Driver.findOne({ referenceId });
+        if (driver) driver.role = 'driver';
+        return driver;
     }
 }

@@ -6,6 +6,9 @@ import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
 import AuthService from '../services/AuthService';
 import UserService from '../services/UserService';
+import { debug } from '../config/logger';
+
+const log = debug('app:auth-middleware');
 
 /**
  * @class
@@ -37,6 +40,7 @@ export default class Auth {
             req.user = decoded;
             return next();
         } catch (error) {
+            log(error);
             const message = Auth.getTokenErrorMessage(error);
             return next(new APIError(message, httpStatus.UNAUTHORIZED, true));
         }
@@ -76,7 +80,7 @@ export default class Auth {
                     messages.invalidOtp, httpStatus.UNAUTHORIZED, true
                 ));
             }
-            const user = await UserService.findById(id, 'driver');
+            const user = await UserService.findByIdAndRole(id, 'driver');
             if (!user) {
                 return next(new APIError(
                     messages.userNotFound, httpStatus.NOT_FOUND, true
@@ -85,6 +89,7 @@ export default class Auth {
             req.user = user;
             return next();
         } catch (error) {
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -108,7 +113,7 @@ export default class Auth {
                     messages.noVerificationToken, httpStatus.NOT_FOUND, true
                 ));
             }
-            const user = await UserService.findById(token.userId, role);
+            const user = await UserService.findByIdAndRole(token.userId, role);
             if (!user) {
                 return next(new APIError(
                     messages.userNotFound, httpStatus.NOT_FOUND, true
@@ -123,6 +128,7 @@ export default class Auth {
             req.token = token;
             return next();
         } catch (error) {
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -139,13 +145,24 @@ export default class Auth {
      */
     static async validateLogin(req, res, next) {
         try {
-            const { email, password } = req.body;
+            const loginMode = req.url.includes('email_login') ? 'email' : 'phone';
+            const { email, password, phone } = req.body;
             const { role } = req.params;
-            const user = await UserService.findByEmailnRole(email, role);
-            if (!user) {
-                return next(new APIError(
-                    messages.invalidCred, httpStatus.UNAUTHORIZED, true
-                ));
+            let user;
+            if (loginMode === 'email') {
+                user = await UserService.findByEmailAndRole(email, role);
+                if (!user) {
+                    return next(new APIError(
+                        messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
+            } else {
+                user = await UserService.findByPhoneAndRole(phone, role);
+                if (!user) {
+                    return next(new APIError(
+                        messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
             }
             const match = await Helper.comparePassword(password, user.password);
             if (!match) {
@@ -153,17 +170,17 @@ export default class Auth {
                     messages.invalidCred, httpStatus.UNAUTHORIZED, true
                 ));
             }
-            if (!user.isEmailVerified) {
+            if (loginMode === 'email' && !user.isEmailVerified) {
                 return next(new APIError(
                     messages.notVerified, httpStatus.UNAUTHORIZED, true
                 ));
             }
             user.lastLoggedInAt = new Date();
-            await user.save();
             req.user = user;
             req.role = role;
             return next();
         } catch (error) {
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -196,6 +213,7 @@ export default class Auth {
             req.role = role;
             return next();
         } catch (error) {
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

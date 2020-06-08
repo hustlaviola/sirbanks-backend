@@ -6,6 +6,9 @@ import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
 import AuthService from '../services/AuthService';
 import sendMail, { sendOtpMail } from '../utils/sendMail';
+import { debug } from '../config/logger';
+
+const log = debug('app:auth-controller');
 
 /**
  * @class
@@ -13,49 +16,6 @@ import sendMail, { sendOtpMail } from '../utils/sendMail';
  * @exports AuthController
  */
 export default class AuthController {
-    /**
-     * @method sendPhoneCode
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof AuthController
-     */
-    static async sendPhoneCode(req, res, next) {
-        try {
-            await AuthService.sendPhoneCode(req);
-            return response(res, httpStatus.OK, messages.phoneCode);
-        } catch (error) {
-            console.error(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    /**
-     * @method verifyPhone
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof AuthController
-     */
-    static async verifyPhone(req, res, next) {
-        try {
-            const result = await AuthService.verifyPhone(req);
-            if (result.status !== 'approved') {
-                return next(new APIError('Please provide a valid otp', httpStatus.BAD_REQUEST, true));
-            }
-            return response(res, httpStatus.OK, messages.phoneVerified);
-        } catch (error) {
-            console.error(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
-
     /**
      * @method verifyEmailOrRenderReset
      * @description Verifies email or render password reset page
@@ -76,7 +36,7 @@ export default class AuthController {
             await user.save();
             return response(res, httpStatus.OK, messages.emailVerified);
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -105,7 +65,7 @@ export default class AuthController {
             };
             return response(res, httpStatus.OK, messages.emailVerified, payload);
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -123,21 +83,22 @@ export default class AuthController {
     static async login(req, res, next) {
         try {
             const { user, role } = req;
-            const { id } = user;
+            const {
+                id, firstName, lastName, isEmailVerified, onboardingStatus
+            } = user;
             const payload = { id, role };
             const token = await Helper.generateToken(payload);
             const userDTO = {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                phone: user.phone,
-                isEmailVerified: user.isEmailVerified,
-                vehicleDetails: user.vehicleDetails,
-                onboardingStatus: user.onboardingStatus
+                id,
+                firstName,
+                lastName,
+                isEmailVerified,
+                onboardingStatus
             };
+            await user.save();
             return response(res, httpStatus.OK, messages.loginSuccess, { token, user: userDTO });
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -189,7 +150,7 @@ export default class AuthController {
             await sendMail(firstName, email, subject, intro, action);
             return response(res, httpStatus.OK, message);
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -213,7 +174,7 @@ export default class AuthController {
             await user.save();
             return response(res, httpStatus.OK, messages.passwordUpdateSuccess);
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

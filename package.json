@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node build/index.js",
-    "build": "babel ./src --out-dir build",
+    "start": "export DEBUG=app:* && cross-env NODE_ENV=production node ./build/index.js",
+    "clean": "rm -rf build && mkdir build",
+    "build-babel": "babel ./src --out-dir build",
+    "build": "npm run clean && npm run build-babel",
     "dev": "export DEBUG=app:* && cross-env NODE_ENV=development nodemon ./src --exec babel-node",
     "lint": "eslint . --ext .js",
     "lint:fix": "npm run lint -- --fix"
@@ -46,6 +48,7 @@
     "moment": "^2.24.0",
     "mongoose": "^5.9.2",
     "multer": "^1.4.2",
+    "request": "^2.88.2",
     "socket.io": "^2.3.0",
     "trim-request-body": "^1.0.1",
     "twilio": "^3.39.5",

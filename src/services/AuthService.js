@@ -12,14 +12,14 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
  */
 export default class AuthService {
     /**
-     * @method regToken
+     * @method createRegToken
      * @description Generates a token for email service
      * @static
      * @param {object} userId - id of the user
      * @returns {object} JSON response
      * @memberof AuthService
      */
-    static regToken(userId) {
+    static createRegToken(userId) {
         // Create a email verification token
         const token = { userId, token: crypto.randomBytes(16).toString('hex') };
         return Token.create(token);
@@ -34,9 +34,7 @@ export default class AuthService {
      * @memberof AuthService
      */
     static async checkToken(token) {
-        const dbToken = await Token.findOne({ token });
-        if (!dbToken) return false;
-        return dbToken;
+        return Token.findOne({ token });
     }
 
     /**
@@ -49,9 +47,7 @@ export default class AuthService {
      * @memberof AuthService
      */
     static async checkOtp(userId, token) {
-        const dbToken = await Token.findOne({ userId, token });
-        if (!dbToken) return false;
-        return dbToken;
+        return Token.findOne({ userId, token });
     }
 
     /**

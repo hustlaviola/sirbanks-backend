@@ -7,6 +7,9 @@ import Helper from '../utils/helpers/Helper';
 import uploadImage from '../utils/helpers/image';
 import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
+import { debug } from '../config/logger';
+
+const log = debug('app:onboarding-middleware');
 
 /**
  * @class
@@ -66,7 +69,7 @@ export default class UserValidator {
             req.user = user;
             return next();
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -114,7 +117,7 @@ export default class UserValidator {
                 numberPlate,
                 licenceDetails
             };
-            const user = await UserService.findById(req.user.id, 'driver');
+            const user = await UserService.findByIdAndRole(req.user.id, 'driver');
             if (!user) {
                 return next(new APIError(
                     messages.userNotFound, httpStatus.NOT_FOUND, true
@@ -129,7 +132,7 @@ export default class UserValidator {
             req.user = user;
             return next();
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -147,7 +150,7 @@ export default class UserValidator {
     static async validateFileUploads(req, res, next) {
         try {
             const { files } = req;
-            const user = await UserService.findById(req.user.id, 'driver');
+            const user = await UserService.findByIdAndRole(req.user.id, 'driver');
             if (!user) {
                 return next(new APIError(
                     messages.userNotFound, httpStatus.NOT_FOUND, true
@@ -204,7 +207,7 @@ export default class UserValidator {
             req.user = user;
             return next();
         } catch (error) {
-            console.error(error);
+            log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }

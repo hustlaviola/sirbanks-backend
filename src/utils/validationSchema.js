@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 const validator = method => {
     switch (method) {
@@ -33,6 +33,83 @@ const validator = method => {
             // param('role', 'role is required and can only be "driver", "rider"')
             //     .exists().isIn(['driver', 'rider'])
         ];
+    case 'phone_verification':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required')
+        ];
+    case 'phone_verification_check':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required'),
+            body('otp').exists()
+                .withMessage('otp is required')
+                .isNumeric()
+                .withMessage('Please provide a valid otp')
+                .isLength({ min: 4, max: 4 })
+                .withMessage('Please provide a valid otp'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"')
+        ];
+    case 'personal_details':
+        return [
+            body('userReference')
+                .isLength({ min: 1 })
+                .withMessage('userReference is required'),
+            body('firstName').exists()
+                .withMessage('firstName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('firstName can only be 2 to 50 characters long')
+                .isAlpha()
+                .withMessage('firstName can only contain alphabets'),
+            body('lastName').exists()
+                .withMessage('lastName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('lastName can only be 2 to 50 characters long')
+                .isAlpha()
+                .withMessage('lastName can only contain alphabets'),
+            body('email').exists()
+                .withMessage('email is required')
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('password').exists()
+                .withMessage('password is required')
+                .isLength({ min: 6 })
+                .withMessage('password must be at least 6 characters')
+        ];
+    case 'email_login':
+        return [
+            body('email')
+                .isLength({ min: 1 })
+                .withMessage('email is required'),
+            body('password')
+                .isLength({ min: 1 })
+                .withMessage('password is required'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"')
+        ];
+    case 'phone_login':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required'),
+            body('password')
+                .isLength({ min: 1 })
+                .withMessage('password is required'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"')
+        ];
     case 'email_only':
         return [
             body('email', 'Please provide a valid email').isEmail()
@@ -41,6 +118,12 @@ const validator = method => {
         return [
             body('password', 'password is required and must be at least 6 characters')
                 .exists().isLength({ min: 6 })
+        ];
+    case 'email_token':
+        return [
+            param('token')
+                .isLength({ min: 1 })
+                .withMessage('token is required')
         ];
     case 'verify_email':
         return [

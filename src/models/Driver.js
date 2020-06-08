@@ -5,20 +5,16 @@ const { Schema } = mongoose;
 const DriverSchema = new Schema({
     email: {
         type: String,
-        required: true,
         unique: true
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
     firstName: {
-        type: String,
-        required: true
+        type: String
     },
     lastName: {
-        type: String,
-        required: true
+        type: String
     },
     phone: {
         type: String,
@@ -30,7 +26,13 @@ const DriverSchema = new Schema({
     },
     myPublicId: {
         type: String,
-        required: true
+        required: true,
+        unique: true
+    },
+    referenceId: {
+        type: String,
+        required: true,
+        unique: true
     },
     isEmailVerified: {
         type: Boolean,
@@ -93,7 +95,8 @@ const DriverSchema = new Schema({
     },
     onboardingStatus: {
         type: String,
-        enum: ['initiated', 'email_verified', 'vehicle_details', 'completed']
+        default: 'initiated',
+        enum: ['initiated', 'personal_details', 'vehicle_details', 'completed']
     },
     isApproved: {
         type: Boolean,
