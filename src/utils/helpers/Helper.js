@@ -4,6 +4,9 @@ import path from 'path';
 import moment from 'moment';
 import validator from 'validator';
 
+import messages from '../messages';
+import sendMail from '../sendMail';
+
 /**
  * @class Helper
  * @description An helper class for authentication
@@ -104,5 +107,26 @@ export default class Helper {
         const keyId = key.substr(3);
         if (!validator.isUUID(keyId)) return false;
         return true;
+    }
+
+    /**
+     * @method resendEmailLink
+     * @description Check if key is valid
+     * @static
+     * @param {object} name
+     * @param {object} email
+     * @param {object} token
+     * @param {object} host
+     * @returns {boolean} Boolean response
+     * @memberof Helper
+     */
+    static resendEmailLink(name, email, token, host) {
+        const link = `http://${host}/onboarding/email_verification/${token}`;
+        const action = {
+            instructions: 'Please click the button below to verify your email address',
+            text: 'Verify',
+            link
+        };
+        return sendMail(name, email, 'Email Verification', messages.emailIntro, action);
     }
 }

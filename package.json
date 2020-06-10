@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "export DEBUG=app:* && pm2 start build/index.js",
+    "start": "export DEBUG=app:* && cross-env NODE_ENV=production node ./build/index.js",
     "clean": "rm -rf build && mkdir build",
     "build-babel": "babel ./src --out-dir build",
     "build": "npm run clean && npm run build-babel",

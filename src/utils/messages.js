@@ -13,6 +13,7 @@ const messages = {
     emailVerified: 'Your email has been verified',
     notVerified: 'Please verify your email address',
     noVerificationToken: 'Link not found or expired',
+    emailIntro: 'We are glad to have you on board. We hope you have a smooth experience using Sirbanks',
     phoneCode: 'Code sent to the provided phone number',
     phoneVerified: 'Phone number verified successfully',
     invalidCred: 'Invalid credentials',

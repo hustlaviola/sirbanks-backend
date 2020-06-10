@@ -11,13 +11,15 @@ router.get('/email_verification/:role/:token',
     AuthValidator.validateParamToken,
     AuthController.verifyEmailOrRenderReset);
 
-router.get('/phone_verification',
-    AuthController.sendPhoneCode);
+router.post('/:role/email_login',
+    validator('email_login'),
+    validate,
+    AuthValidator.validateLogin,
+    AuthController.login);
 
-router.get('/verify_phone',
-    AuthController.verifyPhone);
-
-router.post('/:role/login',
+router.post('/:role/phone_login',
+    validator('phone_login'),
+    validate,
     AuthValidator.validateLogin,
     AuthController.login);
 

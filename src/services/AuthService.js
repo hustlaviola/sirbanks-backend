@@ -34,9 +34,7 @@ export default class AuthService {
      * @memberof AuthService
      */
     static async checkToken(token) {
-        const dbToken = await Token.findOne({ token });
-        if (!dbToken) return false;
-        return dbToken;
+        return Token.findOne({ token });
     }
 
     /**
@@ -49,9 +47,7 @@ export default class AuthService {
      * @memberof AuthService
      */
     static async checkOtp(userId, token) {
-        const dbToken = await Token.findOne({ userId, token });
-        if (!dbToken) return false;
-        return dbToken;
+        return Token.findOne({ userId, token });
     }
 
     /**

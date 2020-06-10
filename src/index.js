@@ -12,7 +12,7 @@ import http from 'http';
 import connectDB from './config/db';
 import messages from './utils/messages';
 import {
-    driverRouter, authRouter, onboardingRouter
+    driverRouter, authRouter, onboardingRouter, indexRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
@@ -54,6 +54,7 @@ app.set('view engine', 'ejs');
 app.use('/api/v1/onboarding', onboardingRouter);
 app.use('/api/v1/drivers', driverRouter);
 app.use('/api/v1/auth', authRouter);
+app.use(indexRouter);
 
 app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
 

@@ -82,6 +82,34 @@ const validator = method => {
                 .isLength({ min: 6 })
                 .withMessage('password must be at least 6 characters')
         ];
+    case 'email_login':
+        return [
+            body('email')
+                .isLength({ min: 1 })
+                .withMessage('email is required'),
+            body('password')
+                .isLength({ min: 1 })
+                .withMessage('password is required'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"')
+        ];
+    case 'phone_login':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required'),
+            body('password')
+                .isLength({ min: 1 })
+                .withMessage('password is required'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"')
+        ];
     case 'email_only':
         return [
             body('email', 'Please provide a valid email').isEmail()
@@ -90,6 +118,12 @@ const validator = method => {
         return [
             body('password', 'password is required and must be at least 6 characters')
                 .exists().isLength({ min: 6 })
+        ];
+    case 'email_token':
+        return [
+            param('token')
+                .isLength({ min: 1 })
+                .withMessage('token is required')
         ];
     case 'verify_email':
         return [

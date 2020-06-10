@@ -22,4 +22,10 @@ router.post('/personal_details',
     OnboardingMiddleware.validateOnboarding,
     OnboardingController.updatePersonalDetails);
 
+router.post('/resend_email_verification',
+    validator('email_only'),
+    validate,
+    OnboardingMiddleware.validateResendEmailLink,
+    OnboardingController.resendEmailVerification);
+
 export default router;

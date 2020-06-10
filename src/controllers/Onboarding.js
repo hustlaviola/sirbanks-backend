@@ -6,7 +6,6 @@ import AuthService from '../services/AuthService';
 import response from '../utils/response';
 import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
-import sendMail from '../utils/sendMail';
 import Helper from '../utils/helpers/Helper';
 import { debug } from '../config/logger';
 
@@ -91,27 +90,66 @@ const log = debug('app:onboarding-controller');
      */
     static async updatePersonalDetails(req, res, next) {
         const { user } = req;
-        const intro = 'We are glad to have you on board. We hope you have a smooth experience using Sirbanks';
         try {
             const {
-                id, firstName, email, onboardingStatus
+                id, firstName, email, onboardingStatus, isEmailVerified
             } = user;
             const token = await AuthService.createRegToken(id);
-            const link = `http://${req.headers.host}/onboarding/email_verification/${token.token}`;
-            const action = {
-                instructions: 'Please click the button below to verify your email address',
-                text: 'Verify',
-                link
-            };
+            Helper.resendEmailLink(firstName, email, token.token, req.headers.host);
             const userToken = await Helper.generateToken({ id, role: user.role });
-            await sendMail(firstName, email,
-                'Email Verification', intro,
-                action);
             await user.save();
             return response(res, httpStatus.CREATED, messages.onboardingComplete, {
                 onboardingStatus,
-                token: userToken
+                token: userToken,
+                isEmailVerified
             });
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method verifyEmail
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Onboarding
+     */
+    static async verifyEmail(req, res, next) {
+        try {
+            const { user } = req;
+            user.isEmailVerified = true;
+            await user.save();
+            return response(res, httpStatus.OK, messages.emailVerified);
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method resendEmailVerification
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Onboarding
+     */
+    static async resendEmailVerification(req, res, next) {
+        const { user } = req;
+        try {
+            const {
+                id, firstName, email
+            } = user;
+            const token = await AuthService.createRegToken(id);
+            Helper.resendEmailLink(firstName, email, token.token, req.headers.host);
+            return response(res, httpStatus.CREATED, messages.emailVerification);
         } catch (error) {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
