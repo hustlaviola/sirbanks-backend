@@ -49,14 +49,14 @@ export default class UserValidator {
             }
             let { password } = req.body;
             password = await Helper.encryptPassword(password);
-            const myPublicId = uuid();
+            const publicId = uuid();
             const user = {
                 firstName,
                 lastName,
                 email,
                 phone,
                 password,
-                myPublicId,
+                publicId,
                 avatar: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
             };
             req.isDriver = false;
@@ -177,7 +177,7 @@ export default class UserValidator {
             }
             if (errMessages.length > 0) {
                 return next(new APIError(
-                    errMessages.join('\n'), httpStatus.BAD_REQUEST, true
+                    errMessages, httpStatus.BAD_REQUEST, true
                 ));
             }
             // const start = Date.now();
@@ -193,10 +193,10 @@ export default class UserValidator {
             // console.log(mark);
             // console.log(process.memoryUsage());
             const tasks = [
-                uploadImage(avatar, user.myPublicId, 'avatar'),
-                uploadImage(licence, user.myPublicId, 'licence'),
-                uploadImage(insurance, user.myPublicId, 'insurance'),
-                uploadImage(vehiclePaper, user.myPublicId, 'vehiclePaper')
+                uploadImage(avatar, user.publicId, 'avatar'),
+                uploadImage(licence, user.publicId, 'licence'),
+                uploadImage(insurance, user.publicId, 'insurance'),
+                uploadImage(vehiclePaper, user.publicId, 'vehiclePaper')
             ];
             const values = await Promise.all(tasks);
             user.avatar = values[0].secure_url;

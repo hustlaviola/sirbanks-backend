@@ -5,16 +5,28 @@ import authRouter from './auth';
 import onboardingRouter from './onboarding';
 import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
-import OnboardingController from '../controllers/Onboarding';
-import OnboardingMiddleware from '../middlewares/Onboarding';
+import AuthValidator from '../middlewares/Auth';
+import AuthController from '../controllers/Auth';
 
 const indexRouter = express.Router();
 
-indexRouter.get('/onboarding/email_verification/:token',
-    validator('email_token'),
+indexRouter.get('/auth/email_verification/:token',
+    validator('token'),
     validate,
-    OnboardingMiddleware.validateEmailVerification,
-    OnboardingController.verifyEmail);
+    AuthValidator.validateToken,
+    AuthController.verifyEmail);
+
+indexRouter.get('/auth/password_reset/:token',
+    validator('token'),
+    validate,
+    AuthValidator.validateToken,
+    AuthController.renderResetPage);
+
+indexRouter.post('/auth/password_reset/:token',
+    validator('password_reset'),
+    validate,
+    AuthValidator.validateToken,
+    AuthController.resetPassword);
 
 export {
     driverRouter, authRouter, onboardingRouter, indexRouter

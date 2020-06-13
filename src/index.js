@@ -1,5 +1,4 @@
 import express from 'express';
-// import debug from 'debug';
 import compression from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -16,13 +15,13 @@ import {
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
-import winstonInstance from './config/logger';
+import winstonInstance, { debug } from './config/logger';
 
 import SocketServer from './socket/index';
 
 const app = express();
 
-// const log = debug('app:http');
+const log = debug('app:http');
 
 connectDB();
 app.use(express.json());
@@ -74,7 +73,7 @@ if (process.env.NODE_ENV === 'development') {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
     if (!err.isOperational) {
-        console.log(err);
+        log(`Operational Error============================${err}`);
     }
     handleError(err, res);
 });
@@ -85,6 +84,6 @@ const server = http.createServer(app);
 
 SocketServer.createServer(server);
 
-server.listen(PORT, () => console.log(`listening on port: ${PORT}..`));
+server.listen(PORT, () => log(`listening on port: ${PORT}..`));
 
 export default server;
