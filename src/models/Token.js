@@ -10,6 +10,11 @@ const TokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    tokenType: {
+        type: String,
+        required: true,
+        enum: ['email', 'password']
+    },
     createdAt: {
         type: Date,
         default: Date.now,

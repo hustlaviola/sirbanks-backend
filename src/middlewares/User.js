@@ -177,7 +177,7 @@ export default class UserValidator {
             }
             if (errMessages.length > 0) {
                 return next(new APIError(
-                    errMessages.join('\n'), httpStatus.BAD_REQUEST, true
+                    errMessages, httpStatus.BAD_REQUEST, true
                 ));
             }
             // const start = Date.now();

@@ -16,25 +16,26 @@ export default class AuthService {
      * @description Generates a token for email service
      * @static
      * @param {object} userId - id of the user
+     * @param {object} tokenType
      * @returns {object} JSON response
      * @memberof AuthService
      */
-    static createRegToken(userId) {
-        // Create a email verification token
-        const token = { userId, token: crypto.randomBytes(16).toString('hex') };
+    static createRegToken(userId, tokenType) {
+        const token = { userId, token: crypto.randomBytes(16).toString('hex'), tokenType };
         return Token.create(token);
     }
 
     /**
-     * @method checkToken
+     * @method findByToken
      * @description Check if token exists in the database
      * @static
      * @param {object} token - token
+     * @param {object} tokenType
      * @returns {object} JSON response
      * @memberof AuthService
      */
-    static async checkToken(token) {
-        return Token.findOne({ token });
+    static findByToken(token, tokenType) {
+        return Token.findOne({ token, tokenType });
     }
 
     /**

@@ -3,7 +3,6 @@ import APIError from '../utils/errorHandler/ApiError';
 import messages from '../utils/messages';
 import Helper from '../utils/helpers/Helper';
 import UserService from '../services/UserService';
-import AuthService from '../services/AuthService';
 import { debug } from '../config/logger';
 
 const log = debug('app:onboarding-middleware');
@@ -49,43 +48,6 @@ export default class Onboarding {
             user.email = email;
             user.password = password;
             user.onboardingStatus = user.role === 'rider' ? 'completed' : 'personal_details';
-            req.user = user;
-            return next();
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    /**
-     * @method validateEmailVerification
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Onboarding
-     */
-    static async validateEmailVerification(req, res, next) {
-        try {
-            const token = await AuthService.checkToken(req.params.token);
-            if (!token) {
-                return next(new APIError(
-                    messages.noVerificationToken, httpStatus.NOT_FOUND, true
-                ));
-            }
-            const user = await UserService.findById(token.userId);
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
-            if (user.isEmailVerified) {
-                return next(new APIError(
-                    messages.alreadyVerified, httpStatus.CONFLICT, true
-                ));
-            }
             req.user = user;
             return next();
         } catch (error) {

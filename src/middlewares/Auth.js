@@ -61,77 +61,77 @@ export default class Auth {
         return errorMessage;
     }
 
-    /**
-     * @method validateEmailOtpVerification
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Auth
-     */
-    static async validateEmailOtpVerification(req, res, next) {
-        try {
-            const { id } = req.user;
-            const isValid = await AuthService.checkOtp(id, req.body.otp);
-            if (!isValid) {
-                return next(new APIError(
-                    messages.invalidOtp, httpStatus.UNAUTHORIZED, true
-                ));
-            }
-            const user = await UserService.findByIdAndRole(id, 'driver');
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
-            req.user = user;
-            return next();
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
+    // /**
+    //  * @method validateEmailOtpVerification
+    //  * @description
+    //  * @static
+    //  * @param {object} req - Request object
+    //  * @param {object} res - Response object
+    //  * @param {object} next
+    //  * @returns {object} JSON response
+    //  * @memberof Auth
+    //  */
+    // static async validateEmailOtpVerification(req, res, next) {
+    //     try {
+    //         const { id } = req.user;
+    //         const isValid = await AuthService.checkOtp(id, req.body.otp);
+    //         if (!isValid) {
+    //             return next(new APIError(
+    //                 messages.invalidOtp, httpStatus.UNAUTHORIZED, true
+    //             ));
+    //         }
+    //         const user = await UserService.findByIdAndRole(id, 'driver');
+    //         if (!user) {
+    //             return next(new APIError(
+    //                 messages.userNotFound, httpStatus.NOT_FOUND, true
+    //             ));
+    //         }
+    //         req.user = user;
+    //         return next();
+    //     } catch (error) {
+    //         log(error);
+    //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+    //     }
+    // }
 
-    /**
-     * @method validateParamToken
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Auth
-     */
-    static async validateParamToken(req, res, next) {
-        try {
-            const token = await AuthService.checkToken(req.params.token);
-            const { role } = req.params;
-            if (!token) {
-                return next(new APIError(
-                    messages.noVerificationToken, httpStatus.NOT_FOUND, true
-                ));
-            }
-            const user = await UserService.findByIdAndRole(token.userId, role);
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
-            if (req.url.includes('verification') && user.isEmailVerified) {
-                return next(new APIError(
-                    messages.alreadyVerified, httpStatus.CONFLICT, true
-                ));
-            }
-            req.user = user;
-            req.token = token;
-            return next();
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
+    // /**
+    //  * @method validateParamToken
+    //  * @description
+    //  * @static
+    //  * @param {object} req - Request object
+    //  * @param {object} res - Response object
+    //  * @param {object} next
+    //  * @returns {object} JSON response
+    //  * @memberof Auth
+    //  */
+    // static async validateParamToken(req, res, next) {
+    //     try {
+    //         const token = await AuthService.checkToken(req.params.token);
+    //         const { role } = req.params;
+    //         if (!token) {
+    //             return next(new APIError(
+    //                 messages.noVerificationToken, httpStatus.NOT_FOUND, true
+    //             ));
+    //         }
+    //         const user = await UserService.findByIdAndRole(token.userId, role);
+    //         if (!user) {
+    //             return next(new APIError(
+    //                 messages.userNotFound, httpStatus.NOT_FOUND, true
+    //             ));
+    //         }
+    //         if (req.url.includes('verification') && user.isEmailVerified) {
+    //             return next(new APIError(
+    //                 messages.alreadyVerified, httpStatus.CONFLICT, true
+    //             ));
+    //         }
+    //         req.user = user;
+    //         req.token = token;
+    //         return next();
+    //     } catch (error) {
+    //         log(error);
+    //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+    //     }
+    // }
 
     /**
      * @method validateLogin
@@ -186,7 +186,7 @@ export default class Auth {
     }
 
     /**
-     * @method validateEmailVerification
+     * @method validateEmailLink
      * @description
      * @static
      * @param {object} req - Request object
@@ -195,22 +195,61 @@ export default class Auth {
      * @returns {object} JSON response
      * @memberof Auth
      */
-    static async validateEmailVerification(req, res, next) {
+    static async validateEmailLink(req, res, next) {
+        const linkType = req.url.includes('resend_email_verification') ? 'email' : 'password';
         try {
-            const { role } = req.params;
-            const user = await UserService.findByEmailnRole(req.body.email, role);
+            const user = await UserService.findByEmail(req.body.email);
             if (!user) {
                 return next(new APIError(
                     messages.noUserEmail, httpStatus.NOT_FOUND, true
                 ));
             }
-            if (req.url.includes('resend') && user.isEmailVerified) {
+            if (linkType === 'email' && user.isEmailVerified) {
                 return next(new APIError(
                     messages.alreadyVerified, httpStatus.CONFLICT, true
                 ));
             }
             req.user = user;
-            req.role = role;
+            req.linkType = linkType;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateToken
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async validateToken(req, res, next) {
+        const linkType = req.url.includes('email_verification') ? 'email' : 'password';
+        try {
+            const token = await AuthService.findByToken(req.params.token, linkType);
+            if (!token) {
+                return next(new APIError(
+                    messages.noVerificationToken, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const user = await UserService.findById(token.userId);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (linkType === 'email' && user.isEmailVerified) {
+                return next(new APIError(
+                    messages.alreadyVerified, httpStatus.CONFLICT, true
+                ));
+            }
+            req.user = user;
+            req.token = token;
             return next();
         } catch (error) {
             log(error);

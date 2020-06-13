@@ -38,12 +38,16 @@ const validator = method => {
             body('phone')
                 .isLength({ min: 1 })
                 .withMessage('phone is required')
+                .isMobilePhone('en-NG', { strictMode: true })
+                .withMessage('please provide a valid phone number')
         ];
     case 'phone_verification_check':
         return [
             body('phone')
                 .isLength({ min: 1 })
-                .withMessage('phone is required'),
+                .withMessage('phone is required')
+                .isMobilePhone('en-NG', { strictMode: true })
+                .withMessage('please provide a valid phone number'),
             body('otp').exists()
                 .withMessage('otp is required')
                 .isNumeric()
@@ -114,12 +118,22 @@ const validator = method => {
         return [
             body('email', 'Please provide a valid email').isEmail()
         ];
+    case 'password_reset':
+        return [
+            body('password').exists()
+                .withMessage('password is required')
+                .isLength({ min: 6 })
+                .withMessage('password must be at least 6 characters'),
+            param('token')
+                .isLength({ min: 1 })
+                .withMessage('token is required')
+        ];
     case 'password_only':
         return [
             body('password', 'password is required and must be at least 6 characters')
                 .exists().isLength({ min: 6 })
         ];
-    case 'email_token':
+    case 'token':
         return [
             param('token')
                 .isLength({ min: 1 })
