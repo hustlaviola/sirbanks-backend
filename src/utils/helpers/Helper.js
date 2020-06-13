@@ -110,23 +110,29 @@ export default class Helper {
     }
 
     /**
-     * @method resendEmailLink
+     * @method sendEmailLink
      * @description Check if key is valid
      * @static
      * @param {object} name
      * @param {object} email
      * @param {object} token
      * @param {object} host
+     * @param {object} linkType
      * @returns {boolean} Boolean response
      * @memberof Helper
      */
-    static resendEmailLink(name, email, token, host) {
-        const link = `http://${host}/onboarding/email_verification/${token}`;
+    static sendEmailLink(name, email, token, host, linkType) {
+        const linkInline = linkType === 'email' ? 'email_verification' : 'password_reset';
+        const instructionInline = linkType === 'email' ? 'verify your email address' : 'reset your password';
+        const text = linkType === 'email' ? 'Verify' : 'Reset';
+        const subject = linkType === 'email' ? 'Email Verification' : 'Reset Password';
+        const message = linkType === 'email' ? messages.emailIntro : messages.passwordIntro;
+        const link = `http://${host}/auth/${linkInline}/${token}`;
         const action = {
-            instructions: 'Please click the button below to verify your email address',
-            text: 'Verify',
+            instructions: `Please click the button below to ${instructionInline}`,
+            text,
             link
         };
-        return sendMail(name, email, 'Email Verification', messages.emailIntro, action);
+        return sendMail(name, email, subject, message, action);
     }
 }

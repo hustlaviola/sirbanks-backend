@@ -95,7 +95,7 @@ const log = debug('app:onboarding-controller');
                 id, firstName, email, onboardingStatus, isEmailVerified
             } = user;
             const token = await AuthService.createRegToken(id);
-            Helper.resendEmailLink(firstName, email, token.token, req.headers.host);
+            Helper.sendEmailLink(firstName, email, token.token, req.headers.host);
             const userToken = await Helper.generateToken({ id, role: user.role });
             await user.save();
             return response(res, httpStatus.CREATED, messages.onboardingComplete, {
@@ -103,28 +103,6 @@ const log = debug('app:onboarding-controller');
                 token: userToken,
                 isEmailVerified
             });
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    /**
-     * @method verifyEmail
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Onboarding
-     */
-    static async verifyEmail(req, res, next) {
-        try {
-            const { user } = req;
-            user.isEmailVerified = true;
-            await user.save();
-            return response(res, httpStatus.OK, messages.emailVerified);
         } catch (error) {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
@@ -148,7 +126,7 @@ const log = debug('app:onboarding-controller');
                 id, firstName, email
             } = user;
             const token = await AuthService.createRegToken(id);
-            Helper.resendEmailLink(firstName, email, token.token, req.headers.host);
+            Helper.sendEmailLink(firstName, email, token.token, req.headers.host);
             return response(res, httpStatus.CREATED, messages.emailVerification);
         } catch (error) {
             log(error);
