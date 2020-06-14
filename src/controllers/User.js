@@ -68,4 +68,45 @@ export default class UserController {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
+
+    /**
+     * @method getUserTrips
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static async getUserTrips(req, res, next) {
+        try {
+            const { trips } = req;
+            return response(res, httpStatus.OK, messages.tripsRetrievalSuccess, trips);
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method uploadAvatar
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static async uploadAvatar(req, res, next) {
+        try {
+            const { user } = req;
+            const { avatar } = await user.save();
+            return response(res, httpStatus.OK, messages.avatarUploadSuccessful, { avatar });
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }

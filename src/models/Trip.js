@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 const TripSchema = new mongoose.Schema({
     riderId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'riders',
+        ref: 'rider',
         required: true
     },
     driverId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'drivers',
+        ref: 'driver',
         required: true
     },
     pickUp: {

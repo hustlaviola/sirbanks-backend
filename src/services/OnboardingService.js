@@ -62,10 +62,10 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
      * @memberof OnboardingService
      */
     static createUser(phone, role) {
-        const myPublicId = `PB-${uuid()}`;
+        const publicId = `PB-${uuid()}`;
         const referenceId = `RF-${uuid()}`;
         const user = {
-            phone, myPublicId, referenceId
+            phone, publicId, referenceId
         };
         if (role === 'rider') {
             return Rider.create(user);

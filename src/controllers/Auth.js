@@ -29,7 +29,7 @@ export default class AuthController {
         try {
             const { user, role } = req;
             const {
-                id, firstName, lastName, isEmailVerified, onboardingStatus, phone
+                id, firstName, lastName, isEmailVerified, onboardingStatus, phone, avatar
             } = user;
             const payload = { id, role };
             const token = await Helper.generateToken(payload);
@@ -38,6 +38,7 @@ export default class AuthController {
                 phone,
                 firstName,
                 lastName,
+                avatar,
                 isEmailVerified,
                 onboardingStatus
             };
@@ -68,7 +69,7 @@ export default class AuthController {
             const message = linkType === 'email' ? messages.emailVerification : messages.passwordReset;
             const token = await AuthService.createRegToken(id, linkType);
             Helper.sendEmailLink(firstName, email, token.token, req.headers.host, linkType);
-            return response(res, httpStatus.CREATED, message);
+            return response(res, httpStatus.OK, message);
         } catch (error) {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
@@ -91,7 +92,8 @@ export default class AuthController {
             user.isEmailVerified = true;
             await token.remove();
             await user.save();
-            return response(res, httpStatus.OK, messages.emailVerified);
+            return res.render('verify');
+            // return response(res, httpStatus.OK, messages.emailVerified);
         } catch (error) {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));

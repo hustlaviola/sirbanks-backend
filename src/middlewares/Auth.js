@@ -164,6 +164,11 @@ export default class Auth {
                     ));
                 }
             }
+            if (user.onboardingStatus === 'initiated') {
+                return next(new APIError(
+                    messages.incompleteOnboarding, httpStatus.UNAUTHORIZED, true
+                ));
+            }
             const match = await Helper.comparePassword(password, user.password);
             if (!match) {
                 return next(new APIError(

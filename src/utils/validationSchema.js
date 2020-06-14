@@ -50,7 +50,7 @@ const validator = method => {
                 .withMessage('please provide a valid phone number'),
             body('otp').exists()
                 .withMessage('otp is required')
-                .isNumeric()
+                .isInt()
                 .withMessage('Please provide a valid otp')
                 .isLength({ min: 4, max: 4 })
                 .withMessage('Please provide a valid otp'),
@@ -136,9 +136,17 @@ const validator = method => {
     case 'token':
         return [
             param('token')
-                .isLength({ min: 1 })
+                .exists()
                 .withMessage('token is required')
         ];
+    // case 'param_id':
+    //     return [
+    //         param('id')
+    //             .exists()
+    //             .withMessage('token is required')
+    //             .isMongoId()
+    //             .withMessage('Please provide a valid id')
+    //     ];
     case 'verify_email':
         return [
             body('otp', 'otp must be 4 digits').isInt().isLength({ min: 4, max: 4 })

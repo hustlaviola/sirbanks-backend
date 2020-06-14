@@ -1,5 +1,4 @@
 import express from 'express';
-// import debug from 'debug';
 import compression from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -12,17 +11,17 @@ import http from 'http';
 import connectDB from './config/db';
 import messages from './utils/messages';
 import {
-    driverRouter, authRouter, onboardingRouter, indexRouter
+    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
-import winstonInstance from './config/logger';
+import winstonInstance, { debug } from './config/logger';
 
 import SocketServer from './socket/index';
 
 const app = express();
 
-// const log = debug('app:http');
+const log = debug('app:http');
 
 connectDB();
 app.use(express.json());
@@ -54,6 +53,7 @@ app.set('view engine', 'ejs');
 app.use('/api/v1/onboarding', onboardingRouter);
 app.use('/api/v1/drivers', driverRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
 app.use(indexRouter);
 
 app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
@@ -74,7 +74,7 @@ if (process.env.NODE_ENV === 'development') {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
     if (!err.isOperational) {
-        console.log(err);
+        log(`Operational Error============================${err}`);
     }
     handleError(err, res);
 });
@@ -85,6 +85,6 @@ const server = http.createServer(app);
 
 SocketServer.createServer(server);
 
-server.listen(PORT, () => console.log(`listening on port: ${PORT}..`));
+server.listen(PORT, () => log(`listening on port: ${PORT}..`));
 
 export default server;

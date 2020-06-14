@@ -48,6 +48,7 @@ export default class Onboarding {
             user.email = email;
             user.password = password;
             user.onboardingStatus = user.role === 'rider' ? 'completed' : 'personal_details';
+            user.avatar = 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png';
             req.user = user;
             return next();
         } catch (error) {

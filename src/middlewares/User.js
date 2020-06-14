@@ -49,14 +49,14 @@ export default class UserValidator {
             }
             let { password } = req.body;
             password = await Helper.encryptPassword(password);
-            const myPublicId = uuid();
+            const publicId = uuid();
             const user = {
                 firstName,
                 lastName,
                 email,
                 phone,
                 password,
-                myPublicId,
+                publicId,
                 avatar: 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png'
             };
             req.isDriver = false;
@@ -193,10 +193,10 @@ export default class UserValidator {
             // console.log(mark);
             // console.log(process.memoryUsage());
             const tasks = [
-                uploadImage(avatar, user.myPublicId, 'avatar'),
-                uploadImage(licence, user.myPublicId, 'licence'),
-                uploadImage(insurance, user.myPublicId, 'insurance'),
-                uploadImage(vehiclePaper, user.myPublicId, 'vehiclePaper')
+                uploadImage(avatar, user.publicId, 'avatar'),
+                uploadImage(licence, user.publicId, 'licence'),
+                uploadImage(insurance, user.publicId, 'insurance'),
+                uploadImage(vehiclePaper, user.publicId, 'vehiclePaper')
             ];
             const values = await Promise.all(tasks);
             user.avatar = values[0].secure_url;
@@ -204,6 +204,90 @@ export default class UserValidator {
             user.vehicleDetails.insuranceUrl = values[2].secure_url;
             user.vehicleDetails.vehiclePaperUrl = values[3].secure_url;
             user.onboardingStatus = 'completed';
+            req.user = user;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetUserTrips
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserValidator
+     */
+    static async validateGetUserTrips(req, res, next) {
+        const { id, role } = req.user;
+        try {
+            const user = await UserService.findById(id);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const trips = await UserService.getUserTrips(id, role);
+            const tripsDTO = trips.map(trip => ({
+                id: trip.id,
+                riderId: id.toString() === trip.riderId.toString() ? undefined : trip.riderId,
+                driverId: id.toString() === trip.driverId.toString() ? undefined : trip.driverId,
+                pickUp: trip.pickUp,
+                dropOff: trip.dropOff,
+                status: trip.status,
+                fare: trip.fare,
+                date: trip.createdAt
+            }));
+            req.trips = tripsDTO;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateAvatarUpload
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserValidator
+     */
+    static async validateAvatarUpload(req, res, next) {
+        try {
+            const { id, role } = req.user;
+            const user = await UserService.findByIdAndRole(id, role);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const { files } = req;
+            if (!files) {
+                return next(new APIError(
+                    messages.avatarRequired, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const { avatar } = files;
+            if (!avatar) {
+                return next(new APIError(
+                    messages.avatarRequired, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (!(avatar.mimetype === 'image/png' || avatar.mimetype === 'image/jpeg')) {
+                return next(new APIError(
+                    messages.noSupportType, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const result = await uploadImage(avatar, user.publicId, 'avatar', role);
+            user.avatar = result.secure_url;
             req.user = user;
             return next();
         } catch (error) {

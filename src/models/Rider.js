@@ -5,7 +5,8 @@ const { Schema } = mongoose;
 const RiderSchema = new Schema({
     email: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
     password: {
         type: String
@@ -21,7 +22,10 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
-    myPublicId: {
+    avatar: {
+        type: String
+    },
+    publicId: {
         type: String,
         required: true,
         unique: true

@@ -5,7 +5,8 @@ const { Schema } = mongoose;
 const DriverSchema = new Schema({
     email: {
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
     password: {
         type: String
@@ -24,7 +25,7 @@ const DriverSchema = new Schema({
     avatar: {
         type: String
     },
-    myPublicId: {
+    publicId: {
         type: String,
         required: true,
         unique: true

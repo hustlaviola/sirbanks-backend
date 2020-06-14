@@ -1,5 +1,6 @@
 import Rider from '../models/Rider';
 import Driver from '../models/Driver';
+import Trip from '../models/Trip';
 
 /**
  * @class
@@ -88,7 +89,7 @@ export default class UserService {
      * @param {string} id - User id
      * @param {string} role - Rider or Driver
      * @returns {object} JSON response
-     * @memberof LionService
+     * @memberof UserService
      */
     static findByIdAndRole(id, role) {
         if (role === 'rider') {
@@ -103,7 +104,7 @@ export default class UserService {
      * @static
      * @param {string} id - User id
      * @returns {object} JSON response
-     * @memberof LionService
+     * @memberof UserService
      */
     static async findById(id) {
         const exist = await Rider.findById(id);
@@ -117,7 +118,7 @@ export default class UserService {
      * @static
      * @param {string} referenceId
      * @returns {object} JSON response
-     * @memberof OnboardingService
+     * @memberof UserService
      */
     static async findUserByReference(referenceId) {
         const rider = await Rider.findOne({ referenceId });
@@ -128,5 +129,19 @@ export default class UserService {
         const driver = await Driver.findOne({ referenceId });
         if (driver) driver.role = 'driver';
         return driver;
+    }
+
+    /**
+     * @method getUserTrips
+     * @description
+     * @static
+     * @param {string} userId - User id
+     * @param {string} role - Driver or Rider
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async getUserTrips(userId, role) {
+        const field = role === 'rider' ? { riderId: userId } : { driverId: userId };
+        return Trip.find(field);
     }
 }

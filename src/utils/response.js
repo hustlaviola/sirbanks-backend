@@ -7,7 +7,7 @@
  * @param {object} data - Response object
  * @returns {object} Response object
  */
-const response = (res, code, message, data = {}) => res.status(code).send({
+const response = (res, code, message, data = undefined) => res.status(code).send({
     status: 'success',
     message,
     data
