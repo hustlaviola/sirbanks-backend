@@ -6,7 +6,7 @@ import UserController from '../controllers/User';
 
 const router = express.Router();
 
-router.get('/trips/',
+router.get('/trips',
     AuthValidator.userAuth,
     UserValidator.validateGetUserTrips,
     UserController.getUserTrips);

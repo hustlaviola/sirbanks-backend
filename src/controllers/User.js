@@ -79,14 +79,9 @@ export default class UserController {
      * @returns {object} JSON response
      * @memberof UserController
      */
-    static async getUserTrips(req, res, next) {
-        try {
-            const { trips } = req;
-            return response(res, httpStatus.OK, messages.tripsRetrievalSuccess, trips);
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
+    static async getUserTrips(req, res) {
+        const { trips } = req;
+        return response(res, httpStatus.OK, messages.tripsRetrievalSuccess, trips);
     }
 
     /**
