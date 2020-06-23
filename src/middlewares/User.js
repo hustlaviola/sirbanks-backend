@@ -232,16 +232,7 @@ export default class UserValidator {
                 ));
             }
             const trips = await UserService.getUserTrips(id, role);
-            const tripsDTO = trips.map(trip => ({
-                id: trip.id,
-                riderId: id.toString() === trip.riderId.toString() ? undefined : trip.riderId,
-                driverId: id.toString() === trip.driverId.toString() ? undefined : trip.driverId,
-                pickUp: trip.pickUp,
-                dropOff: trip.dropOff,
-                status: trip.status,
-                fare: trip.fare,
-                date: trip.createdAt
-            }));
+            const tripsDTO = Helper.formatTrips(trips, id);
             req.trips = tripsDTO;
             return next();
         } catch (error) {

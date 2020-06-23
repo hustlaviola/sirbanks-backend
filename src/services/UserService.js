@@ -142,6 +142,8 @@ export default class UserService {
      */
     static async getUserTrips(userId, role) {
         const field = role === 'rider' ? { riderId: userId } : { driverId: userId };
-        return Trip.find(field);
+        return Trip.find(field).select(
+            ['id', 'riderId', 'driverId', 'pickUp', 'dropOff', 'status', 'fair']
+        );
     }
 }
