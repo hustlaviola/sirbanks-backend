@@ -30,6 +30,10 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
+    permissions: {
+        type: Number,
+        default: 0
+    },
     referenceId: {
         type: String,
         required: true,

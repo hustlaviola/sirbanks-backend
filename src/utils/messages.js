@@ -20,6 +20,7 @@ const messages = {
     invalidCred: 'Invalid credentials',
     noUserEmail: 'No user associated with this email',
     incompleteOnboarding: 'Please complete your onboarding process',
+    unauthorized: 'You are not authorized to perform this action',
     emailVerification: 'Email verification link has been sent to your email',
     passwordReset: 'Password reset link has been sent to your email',
     passwordUpdateSuccess: 'Password updated successfully',

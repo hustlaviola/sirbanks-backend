@@ -8,7 +8,7 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
 
 /**
  * @class
- * @description Authentication middleware class
+ * @description
  * @exports OnboardingService
  */export default class OnboardingService {
     /**

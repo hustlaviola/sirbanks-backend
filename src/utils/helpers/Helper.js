@@ -135,4 +135,27 @@ export default class Helper {
         };
         return sendMail(name, email, subject, message, action);
     }
+
+    /**
+     * @method formatTrips
+     * @description
+     * @static
+     * @param {object} trips - data object
+     * @param {object} id
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static formatTrips(trips, id) {
+        const tripsDTO = trips.map(trip => ({
+            id: trip.id,
+            riderId: id.toString() === trip.riderId.toString() ? undefined : trip.riderId,
+            driverId: id.toString() === trip.driverId.toString() ? undefined : trip.driverId,
+            pickUp: trip.pickUp,
+            dropOff: trip.dropOff,
+            status: trip.status,
+            fare: trip.fare,
+            date: trip.createdAt
+        }));
+        return tripsDTO;
+    }
 }
