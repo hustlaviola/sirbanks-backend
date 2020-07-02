@@ -25,7 +25,7 @@ export default class Helper {
      * @param {string} event
      * @param {object} payload
      * @returns {object} JSON response
-     * @memberof AuthHandler
+     * @memberof Helper
      */
     static emitByID(id, event, payload) {
         if (!clients[id]) return;
@@ -38,7 +38,7 @@ export default class Helper {
      * @static
      * @param {string} id
      * @returns {object} JSON response
-     * @memberof AuthHandler
+     * @memberof Helper
      */
     static auth(id) {
         if (clients[id]) return true;
@@ -68,56 +68,54 @@ export default class Helper {
      * @memberof Helper
      */
     static async dispatch(data, drivers, quantum) {
-        try {
-            console.log(drivers);
-            const {
-                id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat, dropOffLon, dropOffLat
-            } = data;
-            if (!drivers.length) {
-                return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
-            }
-            const driver = drivers.shift();
-            const tripRequest = {
-                tripId: uuid(),
-                riderId: id,
-                driverId: driver._id,
-                pickUp,
-                pickUpLon,
-                pickUpLat,
-                dropOff,
-                dropOffLon,
-                dropOffLat,
-                paymentMethod
-            };
-            reqStatus[tripRequest.tripId] = {
-                reqInfo: data,
-                drivers
-            };
-            allTripRequests[tripRequest.tripId] = tripRequest;
-            if (clients[driver._id]) {
-                clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
-                console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
-                pendingRequests[tripRequest.tripId] = setInterval(() => {
-                    quantum--;
-                    console.log(quantum);
-                    if (quantum < 1) {
-                        clearInterval(pendingRequests[tripRequest.tripId]);
-                        delete pendingRequests[tripRequest.tripId];
-                        if (clients[driver._id]) {
-                            clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
-                        }
-                        delete reqStatus[tripRequest.tripId];
-                        delete allTripRequests[tripRequest.tripId];
-                        return Helper.dispatch(data, drivers, 15);
+        const {
+            id, pickUp, dropOff, paymentMethod, pickUpLon,
+            pickUpLat, dropOffLon, dropOffLat, firstName, avatar
+        } = data;
+        if (!drivers.length) {
+            return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+        }
+        const driver = drivers.shift();
+        const tripRequest = {
+            tripId: uuid(),
+            riderId: id,
+            firstName,
+            avatar,
+            driverId: driver._id,
+            pickUp,
+            pickUpLon,
+            pickUpLat,
+            dropOff,
+            dropOffLon,
+            dropOffLat,
+            paymentMethod
+        };
+        reqStatus[tripRequest.tripId] = {
+            reqInfo: data,
+            drivers
+        };
+        allTripRequests[tripRequest.tripId] = tripRequest;
+        if (clients[driver._id]) {
+            clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
+            console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
+            pendingRequests[tripRequest.tripId] = setInterval(() => {
+                quantum--;
+                console.log(quantum);
+                if (quantum < 1) {
+                    clearInterval(pendingRequests[tripRequest.tripId]);
+                    delete pendingRequests[tripRequest.tripId];
+                    if (clients[driver._id]) {
+                        clients[driver._id].emit(TIMEOUT, 'You didn\'t respond to this request');
                     }
-                }, 1000);
-            } else {
-                delete reqStatus[tripRequest.tripId];
-                delete allTripRequests[tripRequest.tripId];
-                return Helper.dispatch(data, drivers, 15);
-            }
-        } catch (error) {
-            console.log(error);
+                    delete reqStatus[tripRequest.tripId];
+                    delete allTripRequests[tripRequest.tripId];
+                    return Helper.dispatch(data, drivers, 15);
+                }
+            }, 1000);
+        } else {
+            delete reqStatus[tripRequest.tripId];
+            delete allTripRequests[tripRequest.tripId];
+            return Helper.dispatch(data, drivers, 15);
         }
     }
 }

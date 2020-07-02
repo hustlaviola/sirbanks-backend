@@ -24,8 +24,9 @@ import Helper from '../Helper';
 import {
     clients, pendingRequests, reqStatus, allTripRequests
 } from '../index';
+import TransactionService from '../../services/TransactionService';
 
-const log = debug('app:trip');
+const log = debug('app:socket:trip');
 
 /**
  * @class
@@ -47,11 +48,13 @@ export default class TripHandler {
             const {
                 id, role, lon, lat
             } = data;
+            log(`location update ============= id: ${id}, role: ${role}, lon: ${lon}, ${lat}`);
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isLatLong(`${lat}, ${lon}`)) {
                 return socket.emit(ERROR, 'Invalid coordinates(lat or lon)');
@@ -125,7 +128,7 @@ export default class TripHandler {
                     //     { latitude: compLat, longitude: compLon },
                     //     { latitude: lat, longitude: lon }
                     // );
-                    // console.log(distance);
+                    // log(distance);
                     // let status = '';
                     // if (distance <= 200) {
                     //     status = 'Arrived';
@@ -145,10 +148,10 @@ export default class TripHandler {
             } else {
                 await driver.save();
             }
-            return console.log('Location updated Successfully');
+            return log('Location updated Successfully');
             // socket.emit(SUCCESS, 'Location updated Successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -171,7 +174,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid availability');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             // let isAvailable = false;
             // if (availability === 'available') isAvailable = true;
@@ -181,10 +185,10 @@ export default class TripHandler {
             }
             driver.isAvailable = availability;
             await driver.save();
-            console.log(`You are now ${availability ? 'available' : 'unavailable'}`);
+            log(`You are now ${availability ? 'available' : 'unavailable'}`);
             return Helper.emitByID(id, SUCCESS, `You are now ${availability ? 'available' : 'unavailable'}`);
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -202,11 +206,13 @@ export default class TripHandler {
             const {
                 id, pickUpLon, pickUpLat, dropOffLon, dropOffLat
             } = data;
+            log(`request ride ============= id: ${id}, pickUpLon: ${pickUpLon}, pickUpLat: ${pickUpLat}, dropOffLon: ${dropOffLon}, dropOffLat ${dropOffLat}`);
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isLatLong(`${pickUpLat}, ${pickUpLon}`)) {
                 return socket.emit(ERROR, 'Invalid pickUp coordinates(lat/lon)');
@@ -227,13 +233,13 @@ export default class TripHandler {
             dropOff = dropOff.trim().replace(/  +/g, ' ');
             data.pickUp = pickUp;
             data.dropOff = dropOff;
-            console.log('Searching for drivers');
+            log('Searching for drivers');
             const drivers = await Driver.aggregate([
                 {
                     $geoNear: {
                         near: { type: 'Point', coordinates: [Number(pickUpLon), Number(pickUpLat)] },
                         distanceField: 'dist.calculated',
-                        maxDistance: 3000,
+                        maxDistance: 1000000,
                         spherical: true
                     }
                 },
@@ -248,9 +254,11 @@ export default class TripHandler {
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
+            data.firstName = socket.user.firstName;
+            data.avatar = socket.user.avatar;
             return Helper.dispatch(data, drivers, 20);
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -272,7 +280,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -357,11 +366,11 @@ export default class TripHandler {
                 paymentMethod: trip.paymentMethod
             };
             Helper.emitByID(riderId, DRIVER_FOUND, JSON.stringify(newRiderTrip));
-            console.log('Request accepted');
+            log('Request accepted');
             delete allTripRequests[tripId];
             return Helper.emitByID(id, ACCEPTED_REQUEST, JSON.stringify(newDriverTrip));
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -381,7 +390,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -398,7 +408,7 @@ export default class TripHandler {
             Helper.emitByID(id, SUCCESS, 'You have successfully rejected the request');
             return Helper.dispatch(reqInfo, drivers, 20);
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -418,7 +428,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -472,10 +483,10 @@ export default class TripHandler {
                 driverDetails
             };
             Helper.emitById(id, SUCCESS, 'Trip started successfully');
-            console.log('Trip successfully started');
+            log('Trip successfully started');
             return Helper.emitById(trip.riderId, TRIP_STARTED, JSON.stringify(theTrip));
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -497,7 +508,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -528,13 +540,13 @@ export default class TripHandler {
                 tripId, dropOff, dropOffLon, dropOffLat
             };
             Helper.emitByJid(id, SUCCESS, 'Destination updated');
-            console.log('Destination updated');
+            log('Destination updated');
             // if (isDriver) {
             //     return Helper.emitById(trip.riderId, DESTINATION_UPDATED, JSON.stringify(drop));
             // }
             return Helper.emitById(trip.driverId, DESTINATION_UPDATED, JSON.stringify(drop));
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -554,7 +566,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -594,7 +607,7 @@ export default class TripHandler {
             const saveTasks = [trip.save(), driver.save()];
             await Promise.all(saveTasks);
             Helper.emitById(id, SUCCESS, 'Trip successfully canceled');
-            console.log('Trip successfully canceled');
+            log('Trip successfully canceled');
             // Emit to rider if trip was canceled by a driver
             if (isDriver) {
                 return Helper.emitById(
@@ -604,7 +617,7 @@ export default class TripHandler {
             // The rider canceled the trip so emit to driver
             return Helper.emitById(trip.driverId, TRIP_CANCELED, 'Trip canceled by rider');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -627,7 +640,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -662,7 +676,7 @@ export default class TripHandler {
             const { startTime } = trip;
             const baseFare = 400;
             const duration = Math.round((endTime - startTime) / 60000);
-            console.log(duration);
+            log(duration);
             const durationCost = duration * 10;
             const distanceCost = (distance / 1000) * 50;
             const total = baseFare + durationCost + distanceCost;
@@ -686,28 +700,40 @@ export default class TripHandler {
             trip.fare = total;
             driver.currentTripStatus = 'none';
             driver.currentTripId = null;
+            const driverIncome = 0.75 * total;
+            const riderTransaction = {
+                user: riderId,
+                amount: total,
+                transactionType: 'debit',
+                narration: 'Payment for trip taken'
+            };
+            const driverTransaction = {
+                user: driverId,
+                amount: driverIncome,
+                transactionType: 'credit',
+                narration: 'Income for trip taken'
+            };
             if (trip.paymentMethod === 'wallet') {
                 const rider = await Rider.findById(riderId);
                 if (!rider) {
                     return Helper.emitById(id, ERROR, 'Rider not found');
                 }
                 rider.balance -= total;
-                driver.balance += 0.75 * total;
+                driver.balance += driverIncome;
                 await rider.save();
-
-                // TODO: Credit  the Driver with 75% of the total amount
-                // TODO: Store rider transaction on the transactions table
-                // TODO: Store driv zer transaction on the transactions table
             }
-            const saveTasks = [trip.save(), driver.save()];
-            await Promise.all(saveTasks);
-            console.log(tripInfo);
+            await Promise.all([trip.save(), driver.save()]);
+            await Promise.all([
+                TransactionService.createTransaction(riderTransaction),
+                TransactionService.createTransaction(driverTransaction)
+            ]);
+            log(tripInfo);
             // Emit Trip details to driver
             Helper.emitById(id, TRIP_ENDED, JSON.stringify(tripInfo));
             // Emit trip details to rider
             return Helper.emitByJid(riderId, TRIP_ENDED, JSON.stringify(tripInfo));
         } catch (error) {
-            console.error(error);
+            log(error);
             return socket.emit(ERROR, 'An error occurred while ending trip');
         }
     }
