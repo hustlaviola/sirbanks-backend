@@ -164,6 +164,14 @@ const validator = method => {
             body('issueDate', 'issueDate is required').exists(),
             body('expDate', 'expDate is required').exists()
         ];
+    case 'userId':
+        return [
+            param('userId')
+                .exists()
+                .withMessage('userId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid userId')
+        ];
     default:
         break;
     }

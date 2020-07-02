@@ -67,6 +67,7 @@ export default class Auth {
             socket.isDriver = false;
             let user;
             if (role === 'driver') {
+                console.log(id, 'raech here');
                 user = await Driver.findById(id);
                 if (!user) {
                     socket.emit(ERROR, 'User not found');
@@ -81,11 +82,15 @@ export default class Auth {
                     socket.emit(ERROR, 'User not found');
                     return socket.disconnect();
                 }
+                socket.user = {
+                    firstName: user.firstName,
+                    avatar: user.avatar
+                };
             }
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -149,7 +154,7 @@ export default class Auth {
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -227,17 +232,16 @@ export default class Auth {
                 const driver = await Driver.findById(jid);
                 if (driver) {
                     driver.isOnline = false;
-                    driver.isAvailable = false;
-                    delete clients[socket.jid];
                     await driver.save();
                 }
-                console.log(`${jid} disconnected`);
+                delete clients[socket.jid];
+                log(`${jid} disconnected`);
             } catch (error) {
-                console.log('Error while disconnecting');
+                log('Error while disconnecting');
             }
         } else {
             delete clients[socket.jid];
-            console.log('Client Disconnected');
+            log('Client Disconnected');
         }
     }
 }

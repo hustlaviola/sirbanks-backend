@@ -79,7 +79,7 @@ export default class UserController {
      * @returns {object} JSON response
      * @memberof UserController
      */
-    static async getUserTrips(req, res) {
+    static getUserTrips(req, res) {
         const { trips } = req;
         return response(res, httpStatus.OK, messages.tripsRetrievalSuccess, trips);
     }
