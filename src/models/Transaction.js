@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 const TransactionSchema = new mongoose.Schema({
-    userId: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     amount: {
         type: Number,
-        default: null
+        required: true
     },
     transactionType: {
         type: String,
