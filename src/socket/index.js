@@ -39,7 +39,11 @@ export default class SocketServer {
      * @memberof SocketServer
      */
     static createServer(server) {
-        const io = SocketIO.listen(server);
+        const io = SocketIO.listen(server, {
+            pingInterval: 86400000,
+            pingTimeout: 43200000,
+            cookie: false
+        });
 
         let connectCounter = 0;
 

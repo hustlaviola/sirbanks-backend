@@ -53,7 +53,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isLatLong(`${lat}, ${lon}`)) {
                 return socket.emit(ERROR, 'Invalid coordinates(lat or lon)');
@@ -173,7 +174,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid availability');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             // let isAvailable = false;
             // if (availability === 'available') isAvailable = true;
@@ -209,7 +211,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isLatLong(`${pickUpLat}, ${pickUpLon}`)) {
                 return socket.emit(ERROR, 'Invalid pickUp coordinates(lat/lon)');
@@ -248,7 +251,6 @@ export default class TripHandler {
                     }
                 }
             ]);
-            log('drivers: =====', drivers);
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
@@ -276,7 +278,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -385,7 +388,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -422,7 +426,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -501,7 +506,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -558,7 +564,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
@@ -631,7 +638,8 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid id');
             }
             if (!Helper.auth(id)) {
-                return socket.emit(ERROR, 'Unauthorized');
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');

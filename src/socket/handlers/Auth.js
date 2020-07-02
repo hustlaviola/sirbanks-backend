@@ -85,7 +85,7 @@ export default class Auth {
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -149,7 +149,7 @@ export default class Auth {
             clients[id] = socket;
             return Helper.emitByID(id, SUCCESS, 'Authenticated successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 
@@ -228,16 +228,16 @@ export default class Auth {
                 if (driver) {
                     driver.isOnline = false;
                     driver.isAvailable = false;
-                    delete clients[socket.jid];
                     await driver.save();
                 }
-                console.log(`${jid} disconnected`);
+                delete clients[socket.jid];
+                log(`${jid} disconnected`);
             } catch (error) {
-                console.log('Error while disconnecting');
+                log('Error while disconnecting');
             }
         } else {
             delete clients[socket.jid];
-            console.log('Client Disconnected');
+            log('Client Disconnected');
         }
     }
 }
