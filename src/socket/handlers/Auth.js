@@ -231,7 +231,6 @@ export default class Auth {
                 const driver = await Driver.findById(jid);
                 if (driver) {
                     driver.isOnline = false;
-                    driver.isAvailable = false;
                     await driver.save();
                 }
                 delete clients[socket.jid];

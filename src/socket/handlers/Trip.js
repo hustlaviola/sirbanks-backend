@@ -2,6 +2,7 @@
 /* eslint-disable import/no-cycle */
 import validator from 'validator';
 import debug from 'debug';
+import fetch from 'node-fetch';
 // import { getDistance } from 'geolib';
 import {
     ERROR,
@@ -14,7 +15,8 @@ import {
     DESTINATION_UPDATED,
     TRIP_CANCELED,
     TRIP_ENDED,
-    ACCEPTED_REQUEST
+    REQUEST_ACCEPTED,
+    TRIP_DETAILS
 } from '../events';
 import Driver from '../../models/Driver';
 import Rider from '../../models/Rider';
@@ -27,6 +29,8 @@ import {
 import TransactionService from '../../services/TransactionService';
 
 const log = debug('app:socket:trip');
+
+const { GOOGLE_MAPS_API_KEY } = process.env;
 
 /**
  * @class
@@ -193,6 +197,90 @@ export default class TripHandler {
     }
 
     /**
+     * @method getTripDetails
+     * @description
+     * @static
+     * @param {object} socket - Request object
+     * @param {object} data - Response object
+     * @returns {object} JSON response
+     * @memberof TripHandler
+     */
+    static async getTripDetails(socket, data) {
+        try {
+            const {
+                id, pickUpLat, pickUpLon, dropOffLat, dropOffLon
+            } = data;
+            log(`get trip details ======== 
+                id: ${id},
+                pickUpLon: ${pickUpLon},
+                pickUpLat: ${pickUpLat},
+                dropOffLon: ${dropOffLon},
+                dropOffLat ${dropOffLat}`);
+            if (!validator.isMongoId(id)) {
+                return socket.emit(ERROR, 'Invalid id');
+            }
+            if (!Helper.auth(id)) {
+                socket.emit(ERROR, 'Unauthorized');
+                return socket.disconnect();
+            }
+            if (!validator.isLatLong(`${pickUpLat}, ${pickUpLon}`)) {
+                return socket.emit(ERROR, 'Invalid pickUp coordinates(lat/lon)');
+            }
+            if (!validator.isLatLong(`${dropOffLat}, ${dropOffLon}`)) {
+                return socket.emit(ERROR, 'Invalid dropOff coordinates(lat/lon)');
+            }
+            const drivers = await Driver.aggregate([
+                {
+                    $geoNear: {
+                        near: { type: 'Point', coordinates: [Number(pickUpLon), Number(pickUpLat)] },
+                        distanceField: 'dist.calculated',
+                        maxDistance: 1000000,
+                        includeLocs: 'dist.location',
+                        spherical: true
+                    }
+                },
+                {
+                    $match: {
+                        isAvailable: true,
+                        isOnline: true,
+                        currentTripStatus: 'none'
+                    }
+                }
+            ]);
+            if (!drivers.length) {
+                return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+            }
+            let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
+            tripResult = await tripResult.json();
+            const tripDetails = {};
+            if (tripResult.status === 'OK') {
+                const tripResponse = tripResult.rows[0].elements[0];
+                const estimatedFare = await Helper.getEstimatedFare(tripResponse);
+                tripDetails.estimatedFare = estimatedFare;
+            }
+            const driverLon = drivers[0].coordinates[0];
+            const driverLat = drivers[0].coordinates[1];
+            let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
+            driverResult = await driverResult.json();
+            if (driverResult.status === 'OK') {
+                const driverResponse = driverResult.rows[0].elements[0];
+                const durationDistance = await Helper.getDurationAndDistance(driverResponse);
+                tripDetails.durationToRider = durationDistance.duration;
+                tripDetails.distanceToRider = durationDistance.distance;
+            }
+            const driversCoords = drivers.map(driver => ({
+                lon: driver.location.coordinates[0],
+                lat: driver.location.coordinates[1]
+            }));
+            tripDetails.drivers = driversCoords;
+            log(`THE TRIP DETAILS ====== ${tripDetails}`);
+            return Helper.emitByID(id, TRIP_DETAILS, JSON.stringify(tripDetails));
+        } catch (error) {
+            log(error);
+        }
+    }
+
+    /**
      * @method requestRide
      * @description
      * @static
@@ -204,7 +292,7 @@ export default class TripHandler {
     static async requestRide(socket, data) {
         try {
             const {
-                id, pickUpLon, pickUpLat, dropOffLon, dropOffLat
+                id, pickUpLat, pickUpLon, dropOffLat, dropOffLon
             } = data;
             log(`request ride ============= id: ${id}, pickUpLon: ${pickUpLon}, pickUpLat: ${pickUpLat}, dropOffLon: ${dropOffLon}, dropOffLat ${dropOffLat}`);
             if (!validator.isMongoId(id)) {
@@ -240,6 +328,7 @@ export default class TripHandler {
                         near: { type: 'Point', coordinates: [Number(pickUpLon), Number(pickUpLat)] },
                         distanceField: 'dist.calculated',
                         maxDistance: 1000000,
+                        includeLocs: 'dist.location',
                         spherical: true
                     }
                 },
@@ -251,12 +340,41 @@ export default class TripHandler {
                     }
                 }
             ]);
+            log(drivers[0]);
+            log(drivers[0].dist.location);
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
-            data.firstName = socket.user.firstName;
-            data.avatar = socket.user.avatar;
-            return Helper.dispatch(data, drivers, 20);
+            // const result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
+            // let originArea;
+            // let duration;
+            // let distance;
+            // let estimatedFare;
+            // if (result.status === 'OK') {
+            //     originArea = result.origin_addresses[0].split(', ');
+            //     originArea = `${originArea[originArea.length - 3]},
+            //     ${originArea[originArea.length - 2]}`;
+            //     const response = result.rows[0].elements[0];
+            //     distance = response.distance;
+            //     duration = response.duration_in_traffic;
+            //     const durationCost = duration.value / 6;
+            //     const distanceCost = distance.value / 20;
+            //     const fare = durationCost + distanceCost + 400;
+            //     let higherEstimate = fare / 20 + fare;
+            //     let lowerEstimate = fare - fare / 20;
+            //     higherEstimate = Math.ceil(Math.ceil(higherEstimate) / 100) * 100;
+            //     lowerEstimate = Math.ceil(Math.ceil(lowerEstimate) / 100) * 100;
+            //     estimatedFare = {
+            //         lowerEstimate,
+            //         higherEstimate
+            //     };
+            // }
+
+            data.riderName = socket.user.firstName;
+            // data.distance = distance ? distance.text : null;
+            // data.duration = duration ? duration.text : null;
+            // data.estimatedFare = estimatedFare || null;
+            return Helper.dispatch(data, drivers, 15);
         } catch (error) {
             log(error);
         }
@@ -294,7 +412,7 @@ export default class TripHandler {
             }
             const {
                 riderId, pickUp, dropOff, paymentMethod, pickUpLon,
-                pickUpLat, dropOffLon, dropOffLat
+                pickUpLat, dropOffLon, dropOffLat, distanceToRider, durationToRider
             } = allTripRequests[tripId];
             clearInterval(pendingRequests[tripId]);
             delete pendingRequests[tripId];
@@ -323,8 +441,27 @@ export default class TripHandler {
             driver.currentTripId = trip._id;
             rider.currentTripStatus = 'accepted';
             rider.currentTripId = trip._id;
-            await driver.save();
-            await rider.save();
+            let result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
+            result = await result.json();
+            let duration;
+            let distance;
+            let estimatedFare;
+            if (result.status === 'OK') {
+                const response = result.rows[0].elements[0];
+                distance = response.distance;
+                duration = response.duration_in_traffic;
+                const durationCost = duration.value / 6;
+                const distanceCost = distance.value / 20;
+                const fare = durationCost + distanceCost + 400;
+                let higherEstimate = fare / 20 + fare;
+                let lowerEstimate = fare - fare / 20;
+                higherEstimate = Math.ceil(Math.ceil(higherEstimate) / 100) * 100;
+                lowerEstimate = Math.ceil(Math.ceil(lowerEstimate) / 100) * 100;
+                estimatedFare = {
+                    lowerEstimate,
+                    higherEstimate
+                };
+            }
 
             // If the rider is still online
             const { firstName, avatar, phone } = driver;
@@ -351,6 +488,11 @@ export default class TripHandler {
                 dropOff,
                 dropOffLon,
                 dropOffLat,
+                distance: distance ? distance.text : null,
+                duration: duration ? duration.text : null,
+                estimatedFare: estimatedFare || null,
+                distanceToRider,
+                durationToRider,
                 paymentMethod: trip.paymentMethod,
                 driverDetails
             };
@@ -363,12 +505,19 @@ export default class TripHandler {
                 dropOff,
                 dropOffLon,
                 dropOffLat,
+                distance: distance ? distance.text : null,
+                duration: duration ? duration.text : null,
+                estimatedFare: estimatedFare || null,
+                distanceToRider,
+                durationToRider,
                 paymentMethod: trip.paymentMethod
             };
+            await driver.save();
+            await rider.save();
             Helper.emitByID(riderId, DRIVER_FOUND, JSON.stringify(newRiderTrip));
             log('Request accepted');
             delete allTripRequests[tripId];
-            return Helper.emitByID(id, ACCEPTED_REQUEST, JSON.stringify(newDriverTrip));
+            return Helper.emitByID(id, REQUEST_ACCEPTED, JSON.stringify(newDriverTrip));
         } catch (error) {
             log(error);
         }
@@ -620,7 +769,6 @@ export default class TripHandler {
             log(error);
         }
     }
-
 
     /**
      * @method endTrip

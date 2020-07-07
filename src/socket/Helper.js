@@ -3,6 +3,7 @@
 /* eslint-disable import/no-cycle */
 import jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
+import fetch from 'node-fetch';
 
 import {
     clients, reqStatus, pendingRequests, allTripRequests
@@ -10,6 +11,8 @@ import {
 // import TripRequest from '../models/TripRequest';
 // import Trip from '../models/Trip';
 import { RIDE_REQUEST, TIMEOUT, NO_DRIVER_FOUND } from './events';
+
+const { GOOGLE_MAPS_API_KEY } = process.env;
 
 /**
  * @class
@@ -58,6 +61,51 @@ export default class Helper {
     }
 
     /**
+     * @method getDurationAndDistance
+     * @description
+     * @static
+     * @param {string} obj
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static getDurationAndDistance(obj) {
+        const { distance } = obj;
+        const duration = obj.duration_in_traffic;
+        const details = {
+            duration: duration.text,
+            distance: distance.text
+        };
+        console.log(`DURATION N DISTANCE ===== ${details}`);
+        return details;
+    }
+
+    /**
+     * @method getEstimatedFare
+     * @description
+     * @static
+     * @param {string} obj
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static getEstimatedFare(obj) {
+        const { distance } = obj;
+        const duration = obj.duration_in_traffic;
+        const durationCost = duration.value / 6;
+        const distanceCost = distance.value / 20;
+        const fare = durationCost + distanceCost + 400;
+        let higherEstimate = fare / 20 + fare;
+        let lowerEstimate = fare - fare / 20;
+        higherEstimate = Math.ceil(Math.ceil(higherEstimate) / 100) * 100;
+        lowerEstimate = Math.ceil(Math.ceil(lowerEstimate) / 100) * 100;
+        const estimatedFare = {
+            lowerEstimate,
+            higherEstimate
+        };
+        console.log(`ESTIMATED FARE ===== ${estimatedFare}`);
+        return estimatedFare;
+    }
+
+    /**
      * @method dispatch
      * @description
      * @static
@@ -69,18 +117,36 @@ export default class Helper {
      */
     static async dispatch(data, drivers, quantum) {
         const {
-            id, pickUp, dropOff, paymentMethod, pickUpLon,
-            pickUpLat, dropOffLon, dropOffLat, firstName, avatar
+            id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat,
+            dropOffLon, dropOffLat, riderName
         } = data;
         if (!drivers.length) {
             return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
         }
         const driver = drivers.shift();
+        const driverLon = driver.location.coordinates[0];
+        const driverLat = driver.location.coordinates[1];
+        let result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
+        result = await result.json();
+        console.log('result ========================', result);
+        // let originArea = null;
+        let durationToRider = null;
+        let distanceToRider = null;
+        if (result.status === 'OK') {
+            // originArea = result.origin_addresses[0].split(', ');
+            // originArea = `${originArea[originArea.length - 3]},
+            // ${originArea[originArea.length - 2]}`;
+            const response = result.rows[0].elements[0];
+            distanceToRider = response.distance.text;
+            durationToRider = response.duration_in_traffic.text;
+        }
         const tripRequest = {
             tripId: uuid(),
             riderId: id,
-            firstName,
-            avatar,
+            riderName,
+            distanceToRider,
+            durationToRider,
+            // originArea,
             driverId: driver._id,
             pickUp,
             pickUpLon,
@@ -90,6 +156,7 @@ export default class Helper {
             dropOffLat,
             paymentMethod
         };
+        console.log('tripRequest ========================', tripRequest);
         reqStatus[tripRequest.tripId] = {
             reqInfo: data,
             drivers

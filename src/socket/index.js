@@ -10,11 +10,12 @@ import {
     UPDATE_LOCATION,
     UPDATE_AVAILABILITY,
     REQUEST_RIDE,
-    REQUEST_ACCEPTED,
-    REQUEST_REJECTED,
+    ACCEPT_REQUEST,
+    REJECT_REQUEST,
     PRIVATE_MESSAGE,
     CANCEL_TRIP,
-    UPDATE_DESTINATION
+    UPDATE_DESTINATION,
+    GET_TRIP_DETAILS
 } from './events';
 
 export const clients = {};
@@ -59,11 +60,13 @@ export default class SocketServer {
 
             socket.on(UPDATE_AVAILABILITY, data => TripHandler.updateAvail(socket, data));
 
+            socket.on(GET_TRIP_DETAILS, data => TripHandler.getTripDetails(socket, data));
+
             socket.on(REQUEST_RIDE, data => TripHandler.requestRide(socket, data));
 
-            socket.on(REQUEST_ACCEPTED, data => TripHandler.requestAccepted(socket, data));
+            socket.on(ACCEPT_REQUEST, data => TripHandler.requestAccepted(socket, data));
 
-            socket.on(REQUEST_REJECTED, data => TripHandler.requestRejected(socket, data));
+            socket.on(REJECT_REQUEST, data => TripHandler.requestRejected(socket, data));
 
             socket.on(CANCEL_TRIP, data => TripHandler.cancelTrip(socket, data));
 
