@@ -11,7 +11,7 @@ import http from 'http';
 import connectDB from './config/db';
 import messages from './utils/messages';
 import {
-    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter
+    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
@@ -54,6 +54,7 @@ app.use('/api/v1/onboarding', onboardingRouter);
 app.use('/api/v1/drivers', driverRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/admin', adminRouter);
 app.use(indexRouter);
 
 app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
