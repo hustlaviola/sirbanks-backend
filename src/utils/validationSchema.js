@@ -172,6 +172,43 @@ const validator = method => {
                 .isMongoId()
                 .withMessage('Please provide a valid userId')
         ];
+    case 'admin_onboading':
+        return [
+            body('firstName')
+                .exists()
+                .withMessage('firstName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('firstName must be between 2 and 50 characters inclusive'),
+            body('lastName')
+                .exists()
+                .withMessage('lastName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('lastName must be between 2 and 50 characters inclusive'),
+            body('email')
+                .exists()
+                .withMessage('email is required')
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('phone')
+                .exists()
+                .withMessage('phone is required')
+                .isMobilePhone('en-NG', { strictMode: true })
+                .withMessage('please provide a valid phone number with country code'),
+            body('password')
+                .exists()
+                .withMessage('password is required')
+                .isLength({ min: 6 })
+                .withMessage('password must be at least 6 characters')
+        ];
+    case 'admin_login':
+        return [
+            body('email')
+                .exists()
+                .withMessage('email is required'),
+            body('password')
+                .exists()
+                .withMessage('password is required')
+        ];
     default:
         break;
     }

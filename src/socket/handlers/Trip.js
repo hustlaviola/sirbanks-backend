@@ -86,17 +86,29 @@ export default class TripHandler {
                     }
                     const { driverId } = trip;
                     if (clients[driverId]) {
-                        // const compLon = pickUpLocation.coordinates[0];
-                        // const compLat = pickUpLocation.coordinates[1];
-                        // const distance = getDistance(
-                        //     { latitude: compLat, longitude: compLon },
-                        //     { latitude: lat, longitude: lon }
-                        // );
-                        const riderDetails = { riderName: firstName, lon, lat };
+                        const driver = await Driver.findById(trip.driverId);
+                        const [compLon, compLat] = driver.location.coordinates;
+                        let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${lat},${lon}&destinations=${compLat},${compLon}&key=${GOOGLE_MAPS_API_KEY}`);
+                        tripResult = await tripResult.json();
+                        let duration;
+                        let distance;
+                        if (tripResult.status === 'OK') {
+                            const tripResponse = tripResult.rows[0].elements[0];
+                            const durationDistance = await Helper
+                                .getDurationAndDistance(tripResponse);
+                            duration = durationDistance.duration;
+                            distance = durationDistance.distance;
+                        }
+                        const riderDetails = {
+                            id, riderName: firstName, lon, lat, distance, duration
+                        };
+                        log(`Rider Details ${JSON.stringify(riderDetails)}`);
                         Helper.emitByID(
                             trip.driverId, RIDER_LOCATION_UPDATED, JSON.stringify(riderDetails)
                         );
                     }
+                    trip.pickUpLocation = { type: 'Point', coordinates: [Number(lon), Number(lat)] };
+                    await trip.save();
                 }
                 return rider.save();
             }
@@ -112,6 +124,24 @@ export default class TripHandler {
                 const trip = await Trip.findById(currentTripId);
                 if (!trip) {
                     return Helper.emitByID(id, ERROR, 'Trip not found');
+                }
+                let compLon;
+                let compLat;
+                const { pickUpLocation, dropOffLocation } = trip;
+                if (currentTripStatus === 'accepted') {
+                    [compLon, compLat] = pickUpLocation.coordinates;
+                } else {
+                    [compLon, compLat] = dropOffLocation.coordinates;
+                }
+                let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${lat},${lon}&destinations=${compLat},${compLon}&key=${GOOGLE_MAPS_API_KEY}`);
+                tripResult = await tripResult.json();
+                let duration;
+                let distance;
+                if (tripResult.status === 'OK') {
+                    const tripResponse = tripResult.rows[0].elements[0];
+                    const durationDistance = await Helper.getDurationAndDistance(tripResponse);
+                    duration = durationDistance.duration;
+                    distance = durationDistance.distance;
                 }
                 if (clients[trip.riderId]) {
                     const { firstName, avatar } = driver;
@@ -142,8 +172,16 @@ export default class TripHandler {
                     //     status = 'Enroute';
                     // }
                     const driverDetails = {
-                        driverName: firstName, avatar, lon, lat, vehicleDetails
+                        id,
+                        driverName: firstName,
+                        avatar,
+                        lon,
+                        lat,
+                        distance,
+                        duration,
+                        vehicleDetails
                     };
+                    log(`Driver Details ${JSON.stringify(driverDetails)}`);
                     Helper.emitByID(
                         trip.riderId, DRIVER_LOCATION_UPDATED, JSON.stringify(driverDetails)
                     );
