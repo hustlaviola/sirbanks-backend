@@ -67,6 +67,7 @@ export default class Auth {
             socket.isDriver = false;
             let user;
             if (role === 'driver') {
+                console.log(id, 'raech here');
                 user = await Driver.findById(id);
                 if (!user) {
                     socket.emit(ERROR, 'User not found');

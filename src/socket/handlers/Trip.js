@@ -258,8 +258,8 @@ export default class TripHandler {
                 const estimatedFare = await Helper.getEstimatedFare(tripResponse);
                 tripDetails.estimatedFare = estimatedFare;
             }
-            const driverLon = drivers[0].coordinates[0];
-            const driverLat = drivers[0].coordinates[1];
+            const driverLon = drivers[0].location.coordinates[0];
+            const driverLat = drivers[0].location.coordinates[1];
             let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
             driverResult = await driverResult.json();
             if (driverResult.status === 'OK') {
@@ -273,8 +273,8 @@ export default class TripHandler {
                 lat: driver.location.coordinates[1]
             }));
             tripDetails.drivers = driversCoords;
-            log(`THE TRIP DETAILS ====== ${tripDetails}`);
-            return Helper.emitByID(id, TRIP_DETAILS, JSON.stringify(tripDetails));
+            // log(`THE TRIP DETAILS ====== ${JSON.stringify(tripDetails)}`);
+            return socket.emit(TRIP_DETAILS, JSON.stringify(tripDetails));
         } catch (error) {
             log(error);
         }
@@ -345,6 +345,8 @@ export default class TripHandler {
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
+            log(drivers[0]);
+            log(drivers[0].dist.location);
             // const result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
             // let originArea;
             // let duration;
@@ -374,7 +376,7 @@ export default class TripHandler {
             // data.distance = distance ? distance.text : null;
             // data.duration = duration ? duration.text : null;
             // data.estimatedFare = estimatedFare || null;
-            return Helper.dispatch(data, drivers, 15);
+            return Helper.dispatch(data, drivers, 60);
         } catch (error) {
             log(error);
         }
@@ -404,6 +406,9 @@ export default class TripHandler {
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
             }
+            log(`pending ===== ${pendingRequests} reqStatus ===== ${reqStatus} allTripRequests ======${allTripRequests} `);
+            log(`pending ===== ${pendingRequests[tripId]} reqStatus ===== ${reqStatus[tripId]} allTripRequests ======${allTripRequests[tripId]} nothing ${allTripRequests.heee}`);
+            console.log(!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]);
             if (!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]) {
                 return socket.emit(ERROR, 'The trip request you accepted was not found');
             }
@@ -517,7 +522,7 @@ export default class TripHandler {
             Helper.emitByID(riderId, DRIVER_FOUND, JSON.stringify(newRiderTrip));
             log('Request accepted');
             delete allTripRequests[tripId];
-            return Helper.emitByID(id, REQUEST_ACCEPTED, JSON.stringify(newDriverTrip));
+            return socket.emit(REQUEST_ACCEPTED, JSON.stringify(newDriverTrip));
         } catch (error) {
             log(error);
         }
@@ -555,7 +560,7 @@ export default class TripHandler {
             delete allTripRequests[tripId];
             const { reqInfo, drivers } = reqObj;
             Helper.emitByID(id, SUCCESS, 'You have successfully rejected the request');
-            return Helper.dispatch(reqInfo, drivers, 20);
+            return Helper.dispatch(reqInfo, drivers, 60);
         } catch (error) {
             log(error);
         }

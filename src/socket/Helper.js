@@ -75,7 +75,7 @@ export default class Helper {
             duration: duration.text,
             distance: distance.text
         };
-        console.log(`DURATION N DISTANCE ===== ${details}`);
+        console.log(`DURATION N DISTANCE ===== ${JSON.stringify(details)}`);
         return details;
     }
 
@@ -101,7 +101,7 @@ export default class Helper {
             lowerEstimate,
             higherEstimate
         };
-        console.log(`ESTIMATED FARE ===== ${estimatedFare}`);
+        console.log(`ESTIMATED FARE ===== ${JSON.stringify(estimatedFare)}`);
         return estimatedFare;
     }
 
@@ -162,6 +162,7 @@ export default class Helper {
             drivers
         };
         allTripRequests[tripRequest.tripId] = tripRequest;
+        console.log('driver id =======', driver._id);
         if (clients[driver._id]) {
             clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
             console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
@@ -176,13 +177,13 @@ export default class Helper {
                     }
                     delete reqStatus[tripRequest.tripId];
                     delete allTripRequests[tripRequest.tripId];
-                    return Helper.dispatch(data, drivers, 15);
+                    return Helper.dispatch(data, drivers, 60);
                 }
             }, 1000);
         } else {
             delete reqStatus[tripRequest.tripId];
             delete allTripRequests[tripRequest.tripId];
-            return Helper.dispatch(data, drivers, 15);
+            return Helper.dispatch(data, drivers, 60);
         }
     }
 }
