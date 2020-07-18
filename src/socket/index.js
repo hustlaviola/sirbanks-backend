@@ -6,7 +6,7 @@ import AuthHandler from './handlers/Auth';
 import TripHandler from './handlers/Trip';
 import ChatHandler from './handlers/Chat';
 import {
-    AUTH,
+    // AUTH,
     UPDATE_LOCATION,
     UPDATE_AVAILABILITY,
     REQUEST_RIDE,
@@ -41,8 +41,8 @@ export default class SocketServer {
      */
     static createServer(server) {
         const io = SocketIO.listen(server, {
-            pingInterval: 86400000,
-            pingTimeout: 43200000,
+            // pingInterval: 86400000,
+            // pingTimeout: 43200000,
             cookie: false
         });
 
@@ -54,7 +54,7 @@ export default class SocketServer {
             const { token } = socket.handshake.query;
             log(`${connectCounter} client(s) connected`);
             AuthHandler.conn(socket, token);
-            socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
+            // socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
 
             socket.on(UPDATE_LOCATION, data => TripHandler.updateLocation(socket, data));
 
