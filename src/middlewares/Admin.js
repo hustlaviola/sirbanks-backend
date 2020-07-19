@@ -94,9 +94,39 @@ export default class Admin {
                 firstName: admin.firstName,
                 lastName: admin.lastName,
                 avatar: admin.avatar,
-                email
+                email,
+                lastLoggedInAt: admin.lastLoggedInAt
             };
             req.token = token;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetUsers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetUsers(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            let isDriver = false;
+            if (req.url.includes('drivers')) isDriver = true;
+            const users = await AdminService.getUsers(isDriver);
+            req.users = users;
+            req.isDriver = isDriver;
             return next();
         } catch (error) {
             log(error);

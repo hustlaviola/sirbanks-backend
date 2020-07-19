@@ -28,4 +28,14 @@ router.patch('/upload_avatar',
     UserValidator.validateAvatarUpload,
     UserController.uploadAvatar);
 
+router.get('/drivers',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateGetUsers,
+    AdminController.getUsers);
+
+router.get('/riders',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateGetUsers,
+    AdminController.getUsers);
+
 export default router;

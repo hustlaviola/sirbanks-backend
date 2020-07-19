@@ -14,11 +14,11 @@ export default class AdminController {
      * @param {object} req - Request object
      * @param {object} res - Response object
      * @returns {object} JSON response
-     * @memberof Onboarding
+     * @memberof Admin
      */
     static onboardAdmin(req, res) {
         const { admin, token } = req;
-        return response(res, httpStatus.CREATED, 'Admin onboarded successfully', { token, data: admin });
+        return response(res, httpStatus.CREATED, 'Admin onboarded successfully', { token, admin });
     }
 
     /**
@@ -28,10 +28,24 @@ export default class AdminController {
      * @param {object} req - Request object
      * @param {object} res - Response object
      * @returns {object} JSON response
-     * @memberof Onboarding
+     * @memberof Admin
      */
     static adminLogin(req, res) {
         const { admin, token } = req;
-        return response(res, httpStatus.OK, 'Login successful', { token, data: admin });
+        return response(res, httpStatus.OK, 'Login successful', { token, admin });
+    }
+
+    /**
+     * @method getUsers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static getUsers(req, res) {
+        const { users, isDriver } = req;
+        return response(res, httpStatus.OK, `${isDriver ? 'Drivers' : 'Riders'} retrieved successfully`, isDriver ? { drivers: users } : { riders: users });
     }
 }
