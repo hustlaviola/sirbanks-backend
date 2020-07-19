@@ -56,8 +56,8 @@ const RiderSchema = new Schema({
     },
     currentTripStatus: {
         type: String,
-        default: 'none',
-        enum: ['none', 'accepted', 'canceled', 'transit', 'ended']
+        default: null,
+        enum: ['accepted', 'transit']
     },
     onboardingStatus: {
         type: String,

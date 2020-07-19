@@ -110,8 +110,8 @@ const DriverSchema = new Schema({
     },
     currentTripStatus: {
         type: String,
-        default: 'none',
-        enum: ['none', 'accepted', 'canceled', 'transit', 'ended']
+        default: null,
+        enum: ['accepted', 'transit']
     },
     walletBalance: {
         type: Number,

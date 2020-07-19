@@ -73,7 +73,8 @@ export default class Helper {
         const duration = obj.duration_in_traffic;
         const details = {
             duration: duration.text,
-            distance: distance.text
+            distance: distance.text,
+            distanceVal: distance.value
         };
         console.log(`DURATION N DISTANCE ===== ${JSON.stringify(details)}`);
         return details;
