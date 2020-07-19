@@ -5,6 +5,8 @@ import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AdminMiddleware from '../middlewares/Admin';
 import AdminController from '../controllers/Admin';
+import UserValidator from '../middlewares/User';
+import UserController from '../controllers/User';
 
 const router = express.Router();
 
@@ -20,5 +22,10 @@ router.post('/login',
     validate,
     AdminMiddleware.validateAdminLogin,
     AdminController.adminLogin);
+
+router.patch('/upload_avatar',
+    AuthValidator.userAuth,
+    UserValidator.validateAvatarUpload,
+    UserController.uploadAvatar);
 
 export default router;
