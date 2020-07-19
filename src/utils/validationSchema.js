@@ -209,6 +209,22 @@ const validator = method => {
                 .exists()
                 .withMessage('password is required')
         ];
+    case 'tripId':
+        return [
+            param('tripId')
+                .exists()
+                .withMessage('tripId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid tripId')
+        ];
+    // case 'get_users':
+    //     return [
+    //         param('role')
+    //             .isLength({ min: 1 })
+    //             .withMessage('role is required')
+    //             .isIn(['drivers', 'riders'])
+    //             .withMessage('role can only be "driver", "rider"')
+    //     ];
     default:
         break;
     }

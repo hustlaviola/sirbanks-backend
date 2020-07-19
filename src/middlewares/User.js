@@ -8,6 +8,7 @@ import uploadImage from '../utils/helpers/image';
 import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
+import AdminService from '../services/AdminService';
 
 const log = debug('app:onboarding-middleware');
 
@@ -223,19 +224,24 @@ export default class UserValidator {
      * @memberof UserValidator
      */
     static async validateGetUserTrips(req, res, next) {
-        const { id, role } = req.user;
+        const { id, permissions } = req.user;
+        let { role } = req.user;
         const { userId } = req.params;
         try {
-            const user = await UserService.findById(id);
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
-            if (id.toString() !== userId.toString() || user.permissions < 1) {
-                return next(new APIError(
-                    messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                ));
+            if (permissions) {
+                role = req.url.includes('drivers') ? 'driver' : 'rider';
+            } else {
+                const user = await UserService.findById(id);
+                if (!user) {
+                    return next(new APIError(
+                        messages.userNotFound, httpStatus.NOT_FOUND, true
+                    ));
+                }
+                if (id.toString() !== userId.toString()) {
+                    return next(new APIError(
+                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
             }
             const trips = await UserService.getUserTrips(userId, role);
             const tripsDTO = Helper.formatTrips(trips, id);
@@ -259,13 +265,7 @@ export default class UserValidator {
      */
     static async validateAvatarUpload(req, res, next) {
         try {
-            const { id, role } = req.user;
-            const user = await UserService.findByIdAndRole(id, role);
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
+            const { id, role, permissions } = req.user;
             const { files } = req;
             if (!files) {
                 return next(new APIError(
@@ -283,7 +283,18 @@ export default class UserValidator {
                     messages.noSupportType, httpStatus.NOT_FOUND, true
                 ));
             }
-            const result = await uploadImage(avatar, user.publicId, 'avatar', role);
+            let user;
+            if (permissions) {
+                user = await AdminService.findById(id);
+            } else {
+                user = await UserService.findByIdAndRole(id, role);
+            }
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const result = await uploadImage(avatar, user.publicId, 'avatar', permissions ? 'admin' : role);
             user.avatar = result.secure_url;
             req.user = user;
             return next();

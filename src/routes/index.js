@@ -5,6 +5,7 @@ import authRouter from './auth';
 import onboardingRouter from './onboarding';
 import userRouter from './user';
 import adminRouter from './admin';
+import tripRouter from './trip';
 import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AuthValidator from '../middlewares/Auth';
@@ -31,5 +32,5 @@ indexRouter.post('/auth/password_reset/:token',
     AuthController.resetPassword);
 
 export {
-    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter
+    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter, tripRouter
 };
