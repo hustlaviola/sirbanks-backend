@@ -209,6 +209,14 @@ const validator = method => {
                 .exists()
                 .withMessage('password is required')
         ];
+    case 'tripId':
+        return [
+            param('tripId')
+                .exists()
+                .withMessage('tripId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid tripId')
+        ];
     // case 'get_users':
     //     return [
     //         param('role')

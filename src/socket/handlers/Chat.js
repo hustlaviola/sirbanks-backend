@@ -29,7 +29,9 @@ export default class Auth {
      */
     static async privateMessage(socket, data) {
         try {
-            const { id, recipientId, role } = data;
+            const {
+                id, recipientId
+            } = data;
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
             }
@@ -39,15 +41,21 @@ export default class Auth {
             if (!validator.isMongoId(recipientId)) {
                 return socket.emit(ERROR, 'Invalid id');
             }
-            const validRoles = ['rider', 'driver'];
-            if (!validRoles.includes(role)) {
-                log('Invalid role');
-                socket.emit(ERROR, 'Invalid role');
-                return socket.disconnect();
+            // const validRoles = ['rider', 'driver'];
+            // if (!validRoles.includes(role)) {
+            //     log('Invalid role');
+            //     socket.emit(ERROR, 'Invalid role');
+            //     return socket.disconnect();
+            // }
+            let { name, message } = data;
+            name = name.trim().replace(/  +/g, ' ');
+            if (name.length > 100 || name.length < 2) {
+                return socket.emit(ERROR, 'Name must be within 2 to 100 characters');
             }
-            let { message } = data;
             message = message.trim().replace(/  +/g, ' ');
-            const payload = { senderId: id, recipientId, message };
+            const payload = {
+                senderId: id, senderName: name, recipientId, message
+            };
             await Chat.create(payload);
             const senderName = clients[id].userInfo.firstName;
             payload.senderName = senderName;
@@ -57,7 +65,7 @@ export default class Auth {
             Helper.emitById(recipientId, NEW_MESSAGE, payload);
             log('Message sent successfully');
         } catch (error) {
-            console.error(error);
+            log(error);
         }
     }
 }
