@@ -224,19 +224,24 @@ export default class UserValidator {
      * @memberof UserValidator
      */
     static async validateGetUserTrips(req, res, next) {
-        const { id, role } = req.user;
+        const { id, permissions } = req.user;
+        let { role } = req.user;
         const { userId } = req.params;
         try {
-            const user = await UserService.findById(id);
-            if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
-            }
-            if (id.toString() !== userId.toString() || user.permissions < 1) {
-                return next(new APIError(
-                    messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                ));
+            if (permissions) {
+                role = req.url.includes('drivers') ? 'driver' : 'rider';
+            } else {
+                const user = await UserService.findById(id);
+                if (!user) {
+                    return next(new APIError(
+                        messages.userNotFound, httpStatus.NOT_FOUND, true
+                    ));
+                }
+                if (id.toString() !== userId.toString()) {
+                    return next(new APIError(
+                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
             }
             const trips = await UserService.getUserTrips(userId, role);
             const tripsDTO = Helper.formatTrips(trips, id);
@@ -333,4 +338,82 @@ export default class UserValidator {
     //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
     //     }
     // }
+
+    /**
+     * @method validateUsersCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateUsersCount(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const count = await UserService.getUsersCount();
+            req.totalUsers = count;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateDriversCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateDriversCount(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const count = await UserService.getDriversCount();
+            req.totalDrivers = count;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateOnlineDrivers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateOnlineDrivers(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const onlineDrivers = await UserService.getOnlineDrivers();
+            req.onlineDrivers = onlineDrivers;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }
