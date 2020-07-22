@@ -154,7 +154,7 @@ export default class Helper {
             dropOff: trip.dropOff,
             status: trip.status,
             fare: trip.fare,
-            date: trip.createdAt
+            createdAt: trip.createdAt
         }));
         return tripsDTO;
     }

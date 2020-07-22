@@ -143,7 +143,7 @@ export default class UserService {
     static getUserTrips(userId, role) {
         const field = role === 'rider' ? { riderId: userId } : { driverId: userId };
         return Trip.find(field).select(
-            ['id', 'riderId', 'driverId', 'pickUp', 'dropOff', 'status', 'fair']
+            ['id', 'riderId', 'driverId', 'pickUp', 'dropOff', 'status', 'fare', 'createdAt']
         );
     }
 }

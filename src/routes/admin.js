@@ -38,4 +38,39 @@ router.get('/riders',
     AdminMiddleware.validateGetUsers,
     AdminController.getUsers);
 
+router.get('/drivers/:userId',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    AdminMiddleware.validateGetUser,
+    AdminController.getUser);
+
+router.get('/riders/:userId',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    AdminMiddleware.validateGetUser,
+    AdminController.getUser);
+
+router.get('/drivers/:userId/trips',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    UserValidator.validateGetUserTrips,
+    UserController.getUserTrips);
+
+router.get('/riders/:userId/trips',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    UserValidator.validateGetUserTrips,
+    UserController.getUserTrips);
+
+// router.get('/drivers/:userId/trips/:tripId',
+//     AuthValidator.userAuth,
+//     validator('userId_trip'),
+//     validate,
+//     AdminMiddleware.validateGetUser,
+//     AdminController.getUser);
+
 export default router;

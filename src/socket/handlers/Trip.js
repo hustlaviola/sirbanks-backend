@@ -17,8 +17,8 @@ import {
     TRIP_ENDED,
     REQUEST_ACCEPTED,
     TRIP_DETAILS,
-    ARRIVING,
-    ARRIVED,
+    ARRIVED_PICKUP,
+    ARRIVING_PICKUP,
     ARRIVED_DESTINATION,
     ARRIVING_DESTINATION
 } from '../events';
@@ -151,14 +151,18 @@ export default class TripHandler {
                 }
                 if (currentTripStatus === 'accepted') {
                     if (distanceValue <= 200) {
-                        Helper.emitByID(trip.riderId, ARRIVED, 'Driver is arriving');
+                        Helper.emitByID(trip.riderId, ARRIVED_PICKUP, 'Driver arrived');
+                        Helper.emitByID(trip.driverId, ARRIVED_PICKUP, 'Pick up location reached');
                     } else if (distanceValue <= 600) {
-                        Helper.emitByID(trip.riderId, ARRIVING, 'Driver arrived');
+                        Helper.emitByID(trip.riderId, ARRIVING_PICKUP, 'Driver is arriving');
+                        Helper.emitByID(trip.driverId, ARRIVING_PICKUP, 'Arriving pick up location');
                     }
                 } else if (distanceValue <= 200) {
-                    Helper.emitByID(trip.riderId, ARRIVED_DESTINATION, 'Driver is arriving');
+                    Helper.emitByID(trip.riderId, ARRIVED_DESTINATION, 'Destination reached');
+                    Helper.emitByID(trip.driverId, ARRIVED_DESTINATION, 'Destination reached');
                 } else if (distanceValue <= 600) {
-                    Helper.emitByID(trip.riderId, ARRIVING_DESTINATION, 'Driver arrived');
+                    Helper.emitByID(trip.riderId, ARRIVING_DESTINATION, 'Arriving destination');
+                    Helper.emitByID(trip.driverId, ARRIVING_DESTINATION, 'Arriving destination');
                 }
                 if (clients[trip.riderId]) {
                     const { firstName, avatar } = driver;
@@ -461,7 +465,7 @@ export default class TripHandler {
             }
             log(`pending ===== ${pendingRequests} reqStatus ===== ${reqStatus} allTripRequests ======${allTripRequests} `);
             log(`pending ===== ${pendingRequests[tripId]} reqStatus ===== ${reqStatus[tripId]} allTripRequests ======${allTripRequests[tripId]} nothing ${allTripRequests.heee}`);
-            console.log(!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]);
+            log(!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]);
             if (!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]) {
                 return socket.emit(ERROR, 'The trip request you accepted was not found');
             }

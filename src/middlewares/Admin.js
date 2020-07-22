@@ -133,4 +133,95 @@ export default class Admin {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
+
+    /**
+     * @method validateGetUser
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetUser(req, res, next) {
+        const { userId } = req.params;
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            let isDriver = false;
+            if (req.url.includes('drivers')) isDriver = true;
+            const user = await AdminService.getUser(userId, isDriver);
+            if (!user) {
+                return next(new APIError(`${isDriver ? 'Driver' : 'Rider'} not found`, httpStatus.NOT_FOUND, true));
+            }
+            req.userDB = user;
+            req.isDriver = isDriver;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    // /**
+    //  * @method validateGetTrips
+    //  * @description
+    //  * @static
+    //  * @param {object} req - Request object
+    //  * @param {object} res - Response object
+    //  * @param {object} next
+    //  * @returns {object} JSON response
+    //  * @memberof Admin
+    //  */
+    // static async validateGetTrips(req, res, next) {
+    //     const { userId } = req.params;
+    //     if (!req.user.permissions) {
+    //         return next(new APIError(
+    //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
+    //         ));
+    //     }
+    //     try {
+    //         let isDriver = false;
+    //         if (req.url.includes('drivers')) isDriver = true;
+    //         const trips = await AdminService.getTrips(userId, isDriver);
+    //         req.trips = trips;
+    //         return next();
+    //     } catch (error) {
+    //         log(error);
+    //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+    //     }
+    // }
+
+    // /**
+    //  * @method validateGetTrip
+    //  * @description
+    //  * @static
+    //  * @param {object} req - Request object
+    //  * @param {object} res - Response object
+    //  * @param {object} next
+    //  * @returns {object} JSON response
+    //  * @memberof Admin
+    //  */
+    // static async validateGetTrip(req, res, next) {
+    //     const { userId } = req.params;
+    //     if (!req.user.permissions) {
+    //         return next(new APIError(
+    //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
+    //         ));
+    //     }
+    //     try {
+    //         let isDriver = false;
+    //         if (req.url.includes('drivers')) isDriver = true;
+    //         const trips = await AdminService.getTrips(userId, isDriver);
+    //         req.trips = trips;
+    //         return next();
+    //     } catch (error) {
+    //         log(error);
+    //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+    //     }
+    // }
 }
