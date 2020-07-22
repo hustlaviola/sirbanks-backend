@@ -16,7 +16,11 @@ import {
     TRIP_CANCELED,
     TRIP_ENDED,
     REQUEST_ACCEPTED,
-    TRIP_DETAILS
+    TRIP_DETAILS,
+    ARRIVING,
+    ARRIVED,
+    ARRIVED_DESTINATION,
+    ARRIVING_DESTINATION
 } from '../events';
 import Driver from '../../models/Driver';
 import Rider from '../../models/Rider';
@@ -137,11 +141,24 @@ export default class TripHandler {
                 tripResult = await tripResult.json();
                 let duration;
                 let distance;
+                let distanceValue;
                 if (tripResult.status === 'OK') {
                     const tripResponse = tripResult.rows[0].elements[0];
                     const durationDistance = await Helper.getDurationAndDistance(tripResponse);
                     duration = durationDistance.duration;
                     distance = durationDistance.distance;
+                    distanceValue = durationDistance.distanceVal;
+                }
+                if (currentTripStatus === 'accepted') {
+                    if (distanceValue <= 200) {
+                        Helper.emitByID(trip.riderId, ARRIVED, 'Driver is arriving');
+                    } else if (distanceValue <= 600) {
+                        Helper.emitByID(trip.riderId, ARRIVING, 'Driver arrived');
+                    }
+                } else if (distanceValue <= 200) {
+                    Helper.emitByID(trip.riderId, ARRIVED_DESTINATION, 'Driver is arriving');
+                } else if (distanceValue <= 600) {
+                    Helper.emitByID(trip.riderId, ARRIVING_DESTINATION, 'Driver arrived');
                 }
                 if (clients[trip.riderId]) {
                     const { firstName, avatar } = driver;
@@ -281,7 +298,7 @@ export default class TripHandler {
                     $match: {
                         isAvailable: true,
                         isOnline: true,
-                        currentTripStatus: 'none'
+                        currentTripStatus: null
                     }
                 }
             ]);
@@ -374,7 +391,7 @@ export default class TripHandler {
                     $match: {
                         isAvailable: true,
                         isOnline: true,
-                        currentTripStatus: 'none'
+                        currentTripStatus: null
                     }
                 }
             ]);
@@ -383,8 +400,6 @@ export default class TripHandler {
             if (!drivers.length) {
                 return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             }
-            log(drivers[0]);
-            log(drivers[0].dist.location);
             // const result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
             // let originArea;
             // let duration;
@@ -772,40 +787,48 @@ export default class TripHandler {
             }
             let isDriver = false;
             if (role === 'driver') isDriver = true;
-            const findTasks = [
-                Trip.findOne({ tripId }),
-                Driver.findById(id)
-            ];
-            const values = await Promise.all(findTasks);
-            const trip = values[0];
-            const driver = values[1];
+            const trip = Trip.findOne({ tripId });
             if (!trip) {
                 return Helper.emitById(id, ERROR, 'The trip you tried to cancel was not found');
             }
             if (trip.status !== 'accepted') {
                 return Helper.emitById(id, ERROR, 'Trip cannot be cancelled');
             }
+            const findTasks = [
+                Rider.findById(trip.riderId),
+                Driver.findById(trip.driverId)
+            ];
+            const values = await Promise.all(findTasks);
+            const rider = values[0];
+            const driver = values[1];
             if (!driver) {
                 return Helper.emitById(id, ERROR, 'Driver not found');
             }
-            if (isDriver && trip.driverId !== id) {
+            if (!rider) {
+                return Helper.emitById(id, ERROR, 'Rider not found');
+            }
+            if (isDriver && trip.driverId.toString() !== id.toString()) {
                 return Helper.emitById(
                     id, ERROR, 'The trip you tried to start wasn\'t assigned to you'
                 );
             }
             trip.status = 'canceled';
-            driver.currentTripStatus = 'none';
+            await trip.save();
+            driver.currentTripStatus = null;
             driver.currentTripId = null;
-            const saveTasks = [trip.save(), driver.save()];
+            rider.currentTripStatus = null;
+            rider.currentTripId = null;
+            const saveTasks = [rider.save(), driver.save()];
             await Promise.all(saveTasks);
-            Helper.emitById(id, SUCCESS, 'Trip successfully canceled');
             log('Trip successfully canceled');
             // Emit to rider if trip was canceled by a driver
             if (isDriver) {
+                Helper.emitById(id, SUCCESS, 'Trip successfully canceled');
                 return Helper.emitById(
                     trip.riderId, TRIP_CANCELED, 'Trip canceled by driver, book another ride'
                 );
             }
+            Helper.emitById(id, SUCCESS, 'Trip successfully canceled');
             // The rider canceled the trip so emit to driver
             return Helper.emitById(trip.driverId, TRIP_CANCELED, 'Trip canceled by rider');
         } catch (error) {
@@ -842,22 +865,26 @@ export default class TripHandler {
             }
             let { dropOff } = data;
             dropOff = validator.escape(dropOff.trim().replace(/  +/g, ' '));
+            const trip = await Trip.findOne({ tripId });
+            const { driverId, riderId } = trip;
             const findTasks = [
-                Trip.findOne({ tripId }),
+                Rider.findById(riderId),
                 Driver.findById(id)
             ];
             const values = await Promise.all(findTasks);
-            const trip = values[0];
+            const rider = values[0];
             const driver = values[1];
-            const { driverId, riderId } = trip;
 
             if (!trip) {
                 return Helper.emitById(id, ERROR, 'The trip you tried to cancel was not found');
             }
+            if (!rider) {
+                return Helper.emitById(id, ERROR, 'Rider not found');
+            }
             if (!driver) {
                 return Helper.emitById(id, ERROR, 'Driver not found');
             }
-            if (driverId !== id) {
+            if (driverId.toString() !== id.toString()) {
                 return Helper.emitById(
                     id, ERROR, 'The trip you tried to end wasn\'t assigned to you'
                 );
@@ -889,8 +916,10 @@ export default class TripHandler {
                 type: 'Point', coordinates: [Number(dropOffLon), Number(dropOffLat)]
             };
             trip.fare = total;
-            driver.currentTripStatus = 'none';
+            driver.currentTripStatus = null;
             driver.currentTripId = null;
+            rider.currentTripStatus = null;
+            rider.currentTripId = null;
             const driverIncome = 0.75 * total;
             const riderTransaction = {
                 user: riderId,
@@ -904,15 +933,10 @@ export default class TripHandler {
                 transactionType: 'credit',
                 narration: 'Income for trip taken'
             };
-            if (trip.paymentMethod === 'wallet') {
-                const rider = await Rider.findById(riderId);
-                if (!rider) {
-                    return Helper.emitById(id, ERROR, 'Rider not found');
-                }
-                rider.balance -= total;
-                driver.balance += driverIncome;
-                await rider.save();
-            }
+            if (trip.paymentMethod === 'wallet') rider.balance -= total;
+            // TODO Payment
+            await rider.save();
+            driver.balance += driverIncome;
             await Promise.all([trip.save(), driver.save()]);
             await Promise.all([
                 TransactionService.createTransaction(riderTransaction),
