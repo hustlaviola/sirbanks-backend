@@ -7,6 +7,16 @@ import AuthValidator from '../middlewares/Auth';
 
 const router = express.Router();
 
+router.get('/count',
+    AuthValidator.userAuth,
+    UserValidator.validateDriversCount,
+    UserController.getDriversCount);
+
+router.get('/online',
+    AuthValidator.userAuth,
+    UserValidator.validateOnlineDrivers,
+    UserController.getOnlineDrivers);
+
 router.post('/onboarding/vehicle_details',
     AuthValidator.userAuth,
     validator('vehicle_details'),

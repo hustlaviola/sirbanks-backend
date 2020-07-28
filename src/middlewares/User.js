@@ -338,4 +338,82 @@ export default class UserValidator {
     //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
     //     }
     // }
+
+    /**
+     * @method validateUsersCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateUsersCount(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const count = await UserService.getUsersCount();
+            req.totalUsers = count;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateDriversCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateDriversCount(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const count = await UserService.getDriversCount();
+            req.totalDrivers = count;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateOnlineDrivers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateOnlineDrivers(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const onlineDrivers = await UserService.getOnlineDrivers();
+            req.onlineDrivers = onlineDrivers;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }

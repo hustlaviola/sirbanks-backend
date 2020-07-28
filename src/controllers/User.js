@@ -104,4 +104,46 @@ export default class UserController {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
+
+    /**
+     * @method getUsersCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static getUsersCount(req, res) {
+        const { totalUsers } = req;
+        return response(res, httpStatus.OK, 'Total users count retrieved successfully', { totalUsers });
+    }
+
+    /**
+     * @method getDriversCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static getDriversCount(req, res) {
+        const { totalDrivers } = req;
+        return response(res, httpStatus.OK, 'Total drivers count retrieved successfully', { totalDrivers });
+    }
+
+    /**
+     * @method getOnlineDrivers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static getOnlineDrivers(req, res) {
+        const { onlineDrivers } = req;
+        return response(res, httpStatus.OK, 'Online drivers count retrieved successfully', { onlineDrivers });
+    }
 }
