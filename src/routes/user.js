@@ -8,6 +8,11 @@ import UserController from '../controllers/User';
 
 const router = express.Router();
 
+router.get('/count',
+    AuthValidator.userAuth,
+    UserValidator.validateUsersCount,
+    UserController.getUsersCount);
+
 router.get('/:userId/trips',
     AuthValidator.userAuth,
     validator('userId'),

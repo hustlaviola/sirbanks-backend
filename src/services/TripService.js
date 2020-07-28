@@ -35,4 +35,26 @@ export default class TripService {
         };
         return tripDTO;
     }
+
+    /**
+     * @method getTripsCount
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof TripService
+     */
+    static async getTripsCount() {
+        return Trip.estimatedDocumentCount();
+    }
+
+    /**
+     * @method getCurrentTripsCount
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof TripService
+     */
+    static async getCurrentTripsCount() {
+        return Trip.countDocuments({ status: 'transit' });
+    }
 }

@@ -47,18 +47,19 @@ export default class Auth {
             //     socket.emit(ERROR, 'Invalid role');
             //     return socket.disconnect();
             // }
-            let { name, message } = data;
-            name = name.trim().replace(/  +/g, ' ');
-            if (name.length > 100 || name.length < 2) {
-                return socket.emit(ERROR, 'Name must be within 2 to 100 characters');
-            }
+            let { message } = data;
+            // name = name.trim().replace(/  +/g, ' ');
+            // if (name.length > 100 || name.length < 2) {
+            //     return socket.emit(ERROR, 'Name must be within 2 to 100 characters');
+            // }
             message = message.trim().replace(/  +/g, ' ');
             const payload = {
-                senderId: id, senderName: name, recipientId, message
+                senderId: id, recipientId, message
             };
             await Chat.create(payload);
-            const senderName = clients[id].userInfo.firstName;
+            const senderName = clients[id].user.firstName;
             payload.senderName = senderName;
+            payload.recipientId = undefined;
             if (!clients[recipientId]) {
                 return Helper.emitById(id, ERROR, 'Recipient is offline');
             }

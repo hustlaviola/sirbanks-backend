@@ -146,4 +146,39 @@ export default class UserService {
             ['id', 'riderId', 'driverId', 'pickUp', 'dropOff', 'status', 'fare', 'createdAt']
         );
     }
+
+    /**
+     * @method getUsersCount
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async getUsersCount() {
+        const totalDrivers = await Driver.estimatedDocumentCount();
+        const totalRiders = await Rider.estimatedDocumentCount();
+        return totalRiders + totalDrivers;
+    }
+
+    /**
+     * @method getDriversCount
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async getDriversCount() {
+        return Driver.estimatedDocumentCount();
+    }
+
+    /**
+     * @method getOnlineDrivers
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async getOnlineDrivers() {
+        return Driver.countDocuments({ isOnline: true });
+    }
 }

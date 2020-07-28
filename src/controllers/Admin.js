@@ -62,18 +62,4 @@ export default class AdminController {
         const { userDB, isDriver } = req;
         return response(res, httpStatus.OK, `${isDriver ? 'Driver' : 'Rider'} retrieved successfully`, isDriver ? { driver: userDB } : { rider: userDB });
     }
-
-    // /**
-    //  * @method getTrips
-    //  * @description
-    //  * @static
-    //  * @param {object} req - Request object
-    //  * @param {object} res - Response object
-    //  * @returns {object} JSON response
-    //  * @memberof Admin
-    //  */
-    // static getTrips(req, res) {
-    //     const { trips } = req;
-    //     return response(res, httpStatus.OK, 'Trips retrieved successfully', trips);
-    // }
 }
