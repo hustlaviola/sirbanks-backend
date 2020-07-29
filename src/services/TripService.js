@@ -40,21 +40,24 @@ export default class TripService {
      * @method getTripsCount
      * @description
      * @static
+     * @param {object} startDate
+     * @param {object} endDate
+     * @param {object} statuses
      * @returns {object} JSON response
      * @memberof TripService
      */
-    static async getTripsCount() {
-        return Trip.estimatedDocumentCount();
-    }
-
-    /**
-     * @method getCurrentTripsCount
-     * @description
-     * @static
-     * @returns {object} JSON response
-     * @memberof TripService
-     */
-    static async getCurrentTripsCount() {
-        return Trip.countDocuments({ status: 'transit' });
+    static async getTripsCount(startDate = Date.now(), endDate = null, statuses) {
+        const condtion = statuses
+            ? {
+                createdAt: {
+                    $gt: new Date(endDate), $lt: new Date(startDate)
+                },
+                status: JSON.parse(statuses)
+            } : {
+                createdAt: {
+                    $gt: new Date(endDate), $lt: new Date(startDate)
+                }
+            };
+        return Trip.countDocuments(condtion);
     }
 }

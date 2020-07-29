@@ -86,7 +86,7 @@ export default class Helper {
      * @returns {boolean} Boolean response
      * @memberof Helper
      */
-    static async isValidDate(date) {
+    static isValidDate(date) {
         const theDate = new Date(date);
         if (!moment(theDate).isValid()) return false;
         return true;
@@ -157,5 +157,31 @@ export default class Helper {
             createdAt: trip.createdAt
         }));
         return tripsDTO;
+    }
+
+    /**
+     * @method tripStatusError
+     * @description Check if date is valid
+     * @static
+     * @param {object} statuses
+     * @returns {boolean} Boolean response
+     * @memberof Helper
+     */
+    static tripStatusError(statuses) {
+        if (statuses) {
+            try {
+                statuses = JSON.parse(statuses);
+            } catch (error) {
+                return 'statuses must be an array of strings';
+            }
+        }
+        const erredStatus = [];
+        statuses.forEach(status => {
+            if (!validator.isIn(status, ['accepted', 'canceled', 'transit', 'ended'])) {
+                erredStatus.push(status);
+            }
+        });
+        const message = erredStatus.length ? `(${erredStatus.join()}) ${erredStatus.length > 1 ? 'are' : 'is'} invalid` : null;
+        return message;
     }
 }

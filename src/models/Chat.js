@@ -11,6 +11,10 @@ const ChatSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
+    senderName: {
+        type: String,
+        required: true
+    },
     message: {
         type: String,
         required: true
