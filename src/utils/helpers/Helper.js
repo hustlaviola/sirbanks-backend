@@ -174,7 +174,7 @@ export default class Helper {
             } catch (error) {
                 return 'statuses must be an array of strings';
             }
-        }
+        } else return null;
         const erredStatus = [];
         statuses.forEach(status => {
             if (!validator.isIn(status, ['accepted', 'canceled', 'transit', 'ended'])) {
@@ -183,5 +183,27 @@ export default class Helper {
         });
         const message = erredStatus.length ? `(${erredStatus.join()}) ${erredStatus.length > 1 ? 'are' : 'is'} invalid` : null;
         return message;
+    }
+
+    /**
+     * @method formatAdminTrips
+     * @description
+     * @static
+     * @param {object} trips - data object
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static formatAdminTrips(trips) {
+        const tripsDTO = trips.map(trip => ({
+            id: trip.id,
+            riderId: trip.riderId,
+            driverId: trip.driverId,
+            pickUp: trip.pickUp,
+            dropOff: trip.dropOff,
+            status: trip.status,
+            fare: trip.fare,
+            createdAt: trip.createdAt
+        }));
+        return tripsDTO;
     }
 }

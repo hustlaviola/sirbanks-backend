@@ -47,7 +47,7 @@ export default class TripService {
      * @memberof TripService
      */
     static async getTripsCount(startDate = Date.now(), endDate = null, statuses) {
-        const condtion = statuses
+        const condition = statuses
             ? {
                 createdAt: {
                     $gt: new Date(endDate), $lt: new Date(startDate)
@@ -58,6 +58,33 @@ export default class TripService {
                     $gt: new Date(endDate), $lt: new Date(startDate)
                 }
             };
-        return Trip.countDocuments(condtion);
+        return Trip.countDocuments(condition);
+    }
+
+    /**
+     * @method getTrips
+     * @description
+     * @static
+     * @param {object} startDate
+     * @param {object} endDate
+     * @param {object} statuses
+     * @returns {object} JSON response
+     * @memberof TripService
+     */
+    static getTrips(startDate = Date.now(), endDate = null, statuses) {
+        const condition = statuses
+            ? {
+                createdAt: {
+                    $gt: new Date(endDate), $lt: new Date(startDate)
+                },
+                status: JSON.parse(statuses)
+            } : {
+                createdAt: {
+                    $gt: new Date(endDate), $lt: new Date(startDate)
+                }
+            };
+        return Trip.find(condition).select(
+            ['id', 'riderId', 'driverId', 'pickUp', 'dropOff', 'status', 'fare', 'createdAt']
+        );
     }
 }

@@ -7,6 +7,11 @@ import TripMiddleware from '../middlewares/Trip';
 
 const router = express.Router();
 
+router.get('/',
+    AuthValidator.userAuth,
+    TripMiddleware.validateGetTrips,
+    TripController.getTrips);
+
 router.get('/count',
     AuthValidator.userAuth,
     TripMiddleware.validateTripsCount,
