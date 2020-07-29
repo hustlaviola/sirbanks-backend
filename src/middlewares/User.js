@@ -97,13 +97,13 @@ export default class UserValidator {
                 issueDate,
                 expDate
             } = req.body;
-            const isValidIssue = await Helper.isValidDate(issueDate);
+            const isValidIssue = Helper.isValidDate(issueDate);
             if (!isValidIssue) {
                 return next(new APIError(
                     messages.invalidIssueDate, httpStatus.BAD_REQUEST, true
                 ));
             }
-            const isValidExp = await Helper.isValidDate(expDate);
+            const isValidExp = Helper.isValidDate(expDate);
             if (!isValidExp) {
                 return next(new APIError(
                     messages.invalidExpDate, httpStatus.BAD_REQUEST, true
