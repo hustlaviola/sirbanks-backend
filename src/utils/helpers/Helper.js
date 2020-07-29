@@ -168,10 +168,12 @@ export default class Helper {
      * @memberof Helper
      */
     static tripStatusError(statuses) {
-        try {
-            statuses = JSON.parse(statuses);
-        } catch (error) {
-            return 'statuses must be an array of strings';
+        if (statuses) {
+            try {
+                statuses = JSON.parse(statuses);
+            } catch (error) {
+                return 'statuses must be an array of strings';
+            }
         }
         const erredStatus = [];
         statuses.forEach(status => {
