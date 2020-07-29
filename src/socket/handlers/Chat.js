@@ -53,7 +53,9 @@ export default class Auth {
             //     return socket.emit(ERROR, 'Name must be within 2 to 100 characters');
             // }
             message = message.trim().replace(/  +/g, ' ');
-            const payload = { senderId: id, recipientId, message };
+            const payload = {
+                senderId: id, recipientId, message
+            };
             await Chat.create(payload);
             const senderName = clients[id].user.firstName;
             payload.senderName = senderName;
