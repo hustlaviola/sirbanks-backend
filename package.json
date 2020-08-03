@@ -40,6 +40,7 @@
     "express-fileupload": "^1.1.6",
     "express-validator": "^6.4.0",
     "express-winston": "^4.0.3",
+    "firebase-admin": "^9.0.0",
     "geolib": "^3.2.1",
     "helmet": "^3.21.3",
     "http-status": "^1.4.2",

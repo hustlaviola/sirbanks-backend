@@ -35,6 +35,16 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
+    device: {
+        platform: {
+            type: String,
+            required: true
+        },
+        token: {
+            type: String,
+            required: true
+        }
+    },
     location: {
         type: {
             type: String,

@@ -146,7 +146,9 @@ export default class Auth {
     static async validateLogin(req, res, next) {
         try {
             const loginMode = req.url.includes('email_login') ? 'email' : 'phone';
-            const { email, password, phone } = req.body;
+            const {
+                email, password, phone, deviceToken, devicePlatform
+            } = req.body;
             const { role } = req.params;
             let user;
             if (loginMode === 'email') {
@@ -180,6 +182,10 @@ export default class Auth {
                     messages.notVerified, httpStatus.UNAUTHORIZED, true
                 ));
             }
+            user.device = {
+                platform: devicePlatform,
+                token: deviceToken
+            };
             user.lastLoggedInAt = new Date();
             req.user = user;
             req.role = role;

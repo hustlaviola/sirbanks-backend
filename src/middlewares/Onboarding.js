@@ -25,7 +25,7 @@ export default class Onboarding {
      */
     static async validateOnboarding(req, res, next) {
         const {
-            userReference, firstName, lastName, email
+            userReference, firstName, lastName, email, deviceToken, devicePlatform
         } = req.body;
         try {
             const isValidRef = Helper.isValidKey(userReference, 'RF-');
@@ -47,6 +47,10 @@ export default class Onboarding {
             user.lastName = lastName;
             user.email = email;
             user.password = password;
+            user.device = {
+                platform: devicePlatform,
+                token: deviceToken
+            };
             user.onboardingStatus = user.role === 'rider' ? 'completed' : 'personal_details';
             user.avatar = 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png';
             req.user = user;

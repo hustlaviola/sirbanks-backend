@@ -84,7 +84,13 @@ const validator = method => {
             body('password').exists()
                 .withMessage('password is required')
                 .isLength({ min: 6 })
-                .withMessage('password must be at least 6 characters')
+                .withMessage('password must be at least 6 characters'),
+            body('deviceToken').exists()
+                .withMessage('deviceToken is required'),
+            body('devicePlatform').exists()
+                .withMessage('devicePlatform is required')
+                .isIn(['ANDROID', 'IOS'])
+                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
         ];
     case 'email_login':
         return [
@@ -98,7 +104,13 @@ const validator = method => {
                 .isLength({ min: 1 })
                 .withMessage('role is required')
                 .isIn(['driver', 'rider'])
-                .withMessage('role can only be "driver", "rider"')
+                .withMessage('role can only be "driver" or "rider"'),
+            body('deviceToken').exists()
+                .withMessage('deviceToken is required'),
+            body('devicePlatform').exists()
+                .withMessage('devicePlatform is required')
+                .isIn(['ANDROID', 'IOS'])
+                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
         ];
     case 'phone_login':
         return [
@@ -112,7 +124,13 @@ const validator = method => {
                 .isLength({ min: 1 })
                 .withMessage('role is required')
                 .isIn(['driver', 'rider'])
-                .withMessage('role can only be "driver", "rider"')
+                .withMessage('role can only be "driver", "rider"'),
+            body('deviceToken').exists()
+                .withMessage('deviceToken is required'),
+            body('devicePlatform').exists()
+                .withMessage('devicePlatform is required')
+                .isIn(['ANDROID', 'IOS'])
+                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
         ];
     case 'email_only':
         return [

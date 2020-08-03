@@ -35,6 +35,16 @@ const DriverSchema = new Schema({
         required: true,
         unique: true
     },
+    device: {
+        platform: {
+            type: String,
+            required: true
+        },
+        token: {
+            type: String,
+            required: true
+        }
+    },
     isEmailVerified: {
         type: Boolean,
         default: false
