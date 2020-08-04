@@ -10,6 +10,8 @@ import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AuthValidator from '../middlewares/Auth';
 import AuthController from '../controllers/Auth';
+import AdminController from '../controllers/Admin';
+import AdminMiddleware from '../middlewares/Admin';
 
 const indexRouter = express.Router();
 
@@ -30,6 +32,14 @@ indexRouter.post('/auth/password_reset/:token',
     validate,
     AuthValidator.validateToken,
     AuthController.resetPassword);
+
+indexRouter.get('/api/v1/makes',
+    AdminMiddleware.validateGetMakes,
+    AdminController.getMakes);
+
+indexRouter.get('/api/v1/makes/:makeId/models',
+    AdminMiddleware.validateGetModels,
+    AdminController.getModels);
 
 export {
     driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter, tripRouter

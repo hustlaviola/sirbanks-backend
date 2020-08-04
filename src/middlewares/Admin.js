@@ -5,6 +5,7 @@ import messages from '../utils/messages';
 import Helper from '../utils/helpers/Helper';
 import { debug } from '../config/logger';
 import AdminService from '../services/AdminService';
+import UserService from '../services/UserService';
 
 const log = debug('app:admin-middleware');
 
@@ -167,6 +168,39 @@ export default class Admin {
         }
     }
 
+    /**
+     * @method validateDeleteUser
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateDeleteUser(req, res, next) {
+        const { userId } = req.params;
+        if (!req.user.permissions || req.user.permissions < 3) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            let isDriver = false;
+            if (req.url.includes('drivers')) isDriver = true;
+            const user = await AdminService.deleteUser(userId, isDriver);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
     // /**
     //  * @method validateGetTrips
     //  * @description
@@ -224,4 +258,95 @@ export default class Admin {
     //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
     //     }
     // }
+
+    /**
+     * @method validateAddUsers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateAddUser(req, res, next) {
+        if (!req.user.permissions || req.user.permissions < 3) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        try {
+            const {
+                phone, firstName, lastName, email
+            } = req.body;
+            let user = await UserService.findByPhone(phone);
+            if (user) {
+                return next(new APIError(messages.phoneInUse, httpStatus.CONFLICT, true));
+            }
+            const isEmailTaken = await UserService.findByEmail(email);
+            if (isEmailTaken) {
+                return next(new APIError(messages.emailInUse, httpStatus.CONFLICT, true));
+            }
+            const password = await Helper.encryptPassword(req.body.password);
+            user = {
+                phone, firstName, lastName, email, password
+            };
+            user.avatar = 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png';
+            let isDriver = false;
+            user.onboardingStatus = 'completed';
+            if (req.url.includes('drivers')) {
+                isDriver = true;
+                user.onboardingStatus = 'personal_details';
+            }
+            user = await AdminService.createUser(user, isDriver);
+            req.newUser = user;
+            req.isDriver = isDriver;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetMakes
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetMakes(req, res, next) {
+        try {
+            const makes = await AdminService.getMakes();
+            req.makes = makes;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetModels
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetModels(req, res, next) {
+        try {
+            const models = await AdminService.getModelsByMake(req.params.makeId);
+            req.makeModels = models;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }

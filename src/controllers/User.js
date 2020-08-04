@@ -26,14 +26,14 @@ export default class UserController {
      */
     static async updateVehicleDetails(req, res, next) {
         try {
-            const { user } = req;
-            user.onboardingStatus = 'vehicle_details';
-            await user.save();
-            const token = await Helper.generateToken({ id: user.id, role: 'driver' });
+            const { dbUser, isAdmin } = req;
+            let token;
+            if (!isAdmin) token = await Helper.generateToken({ id: dbUser.id, role: 'driver' });
             const payload = {
                 token,
-                onboardingStatus: 'vehicle_details',
-                isEmailVerified: user.isEmailVerified
+                reference: isAdmin ? dbUser.referenceId : undefined,
+                onboardingStatus: dbUser.onboardingStatus,
+                isEmailVerified: dbUser.isEmailVerified
             };
             return response(res, httpStatus.OK, messages.vehicleDetails, payload);
         } catch (error) {
@@ -54,13 +54,13 @@ export default class UserController {
      */
     static async upLoadDriverFiles(req, res, next) {
         try {
-            const { user } = req;
-            await user.save();
-            const token = await Helper.generateToken({ id: user.id, role: 'driver' });
+            const { dbUser, isAdmin } = req;
+            let token;
+            if (!isAdmin) token = await Helper.generateToken({ id: dbUser.id, role: 'driver' });
             const payload = {
                 token,
-                onboardingStatus: user.onboardingStatus,
-                isEmailVerified: user.isEmailVerified
+                onboardingStatus: dbUser.onboardingStatus,
+                isEmailVerified: dbUser.isEmailVerified
             };
             return response(res, httpStatus.OK, messages.onboardingCompleted, payload);
         } catch (error) {
@@ -94,15 +94,10 @@ export default class UserController {
      * @returns {object} JSON response
      * @memberof UserController
      */
-    static async uploadAvatar(req, res, next) {
-        try {
-            const { user } = req;
-            const { avatar } = await user.save();
-            return response(res, httpStatus.OK, messages.avatarUploadSuccessful, { avatar });
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
+    static uploadAvatar(req, res) {
+        const { user } = req;
+        return response(res, httpStatus.OK, messages.avatarUploadSuccessful,
+            { avatar: user.avatar });
     }
 
     /**
@@ -145,5 +140,33 @@ export default class UserController {
     static getOnlineDrivers(req, res) {
         const { onlineDrivers } = req;
         return response(res, httpStatus.OK, 'Online drivers count retrieved successfully', { onlineDrivers });
+    }
+
+    /**
+     * @method updateUser
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static updateUser(req, res) {
+        const { role } = req;
+        return response(res, httpStatus.OK, `${role} updated successfully`);
+    }
+
+    /**
+     * @method getAvatar
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static getAvatar(req, res) {
+        const { avatar } = req;
+        return response(res, httpStatus.OK, 'avatar retrieved successfully', { avatar });
     }
 }

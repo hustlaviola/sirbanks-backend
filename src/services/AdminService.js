@@ -1,7 +1,11 @@
+import { v4 as uuid } from 'uuid';
+
 import Admin from '../models/Admin';
 import Driver from '../models/Driver';
 import Rider from '../models/Rider';
 import Trip from '../models/Trip';
+import Make from '../models/Make';
+import Model from '../models/Model';
 
 /**
  * @class
@@ -55,8 +59,13 @@ export default class AdminService {
      */
     static async getUsers(isDriver) {
         let users;
-        if (isDriver) users = await Driver.find({ onboardingStatus: { $in: ['completed', 'personal_details'] } });
-        else users = await Rider.find({ onboardingStatus: 'completed' });
+        // if (isDriver) {
+        //     users = await Driver.find({
+        //         onboardingStatus: { $in: ['completed', 'personal_details', 'vehicle_details'] }
+        //     });
+        // }
+        if (isDriver) users = await Driver.find();
+        else users = await Rider.find();
         const usersDTO = users.map(user => ({
             id: user.id,
             firstName: user.firstName,
@@ -89,6 +98,7 @@ export default class AdminService {
             email: user.email,
             phone: user.phone,
             avatar: user.avatar,
+            reference: user.referenceId,
             currentTripId: user.currentTripId,
             currentTripStatus: user.currentTripStatus,
             onboardingStatus: user.onboardingStatus,
@@ -161,5 +171,72 @@ export default class AdminService {
             createdAt: trip.createdAt
         };
         return tripDTO;
+    }
+
+    /**
+     * @method deleteUser
+     * @description
+     * @static
+     * @param {object} id
+     * @param {boolean} isDriver
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async deleteUser(id, isDriver) {
+        if (isDriver) return Driver.findByIdAndDelete(id);
+        return Rider.findByIdAndDelete(id);
+    }
+
+    /**
+     * @method createUser
+     * @description
+     * @static
+     * @param {object} user
+     * @param {boolean} isDriver
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static createUser(user, isDriver) {
+        const publicId = `PB-${uuid()}`;
+        const referenceId = `RF-${uuid()}`;
+        user.publicId = publicId;
+        user.referenceId = referenceId;
+        if (isDriver) {
+            return Driver.create(user);
+        }
+        return Rider.create(user);
+    }
+
+    /**
+     * @method getMakes
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async getMakes() {
+        const makes = await Make.find();
+        const makesDTO = makes.map(make => ({
+            id: make.id,
+            name: make.name
+        }));
+        return makesDTO;
+    }
+
+    /**
+     * @method getModelsByMake
+     * @description
+     * @static
+     * @param {object} make
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async getModelsByMake(make) {
+        const models = await Model.find({ make });
+        const makesDTO = models.map(model => ({
+            id: model.id,
+            name: model.name
+        }));
+        return makesDTO;
     }
 }

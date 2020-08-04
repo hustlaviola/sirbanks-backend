@@ -1,7 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable import/no-cycle */
 import validator from 'validator';
-import debug from 'debug';
 import fetch from 'node-fetch';
 // import { getDistance } from 'geolib';
 import {
@@ -16,21 +15,19 @@ import {
     TRIP_CANCELED,
     TRIP_ENDED,
     REQUEST_ACCEPTED,
-    TRIP_DETAILS,
-    ARRIVED_PICKUP,
-    ARRIVING_PICKUP,
-    ARRIVED_DESTINATION,
-    ARRIVING_DESTINATION
+    TRIP_DETAILS
 } from '../events';
 import Driver from '../../models/Driver';
 import Rider from '../../models/Rider';
 import Trip from '../../models/Trip';
 // import Rider from '../../models/Rider';
 import Helper from '../Helper';
+import HelperUtil from '../../utils/helpers/Helper';
 import {
     clients, pendingRequests, reqStatus, allTripRequests
 } from '../index';
 import TransactionService from '../../services/TransactionService';
+import { debug } from '../../config/logger';
 
 const log = debug('app:socket:trip');
 
@@ -56,6 +53,7 @@ export default class TripHandler {
             const {
                 id, role, lon, lat
             } = data;
+            let riderDeviceId;
             log(`location update ============= id: ${id}, role: ${role}, lon: ${lon}, ${lat}`);
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
@@ -80,6 +78,7 @@ export default class TripHandler {
                 if (!rider) {
                     return Helper.emitByID(id, ERROR, 'Rider not found');
                 }
+                riderDeviceId = rider.device.token;
                 const location = { type: 'Point', coordinates: [Number(lon), Number(lat)] };
                 rider.location = location;
                 const { firstName, currentTripId, currentTripStatus } = rider;
@@ -120,6 +119,7 @@ export default class TripHandler {
             if (!driver) {
                 return Helper.emitByID(id, ERROR, 'Driver not found');
             }
+            const driverDeviceId = driver.device.token;
             const location = { type: 'Point', coordinates: [Number(lon), Number(lat)] };
             driver.location = location;
             const validTripStatus = ['accepted', 'transit'];
@@ -148,21 +148,6 @@ export default class TripHandler {
                     duration = durationDistance.duration;
                     distance = durationDistance.distance;
                     distanceValue = durationDistance.distanceVal;
-                }
-                if (currentTripStatus === 'accepted') {
-                    if (distanceValue <= 200) {
-                        Helper.emitByID(trip.riderId, ARRIVED_PICKUP, 'Driver arrived');
-                        Helper.emitByID(trip.driverId, ARRIVED_PICKUP, 'Pick up location reached');
-                    } else if (distanceValue <= 600) {
-                        Helper.emitByID(trip.riderId, ARRIVING_PICKUP, 'Driver is arriving');
-                        Helper.emitByID(trip.driverId, ARRIVING_PICKUP, 'Arriving pick up location');
-                    }
-                } else if (distanceValue <= 200) {
-                    Helper.emitByID(trip.riderId, ARRIVED_DESTINATION, 'Destination reached');
-                    Helper.emitByID(trip.driverId, ARRIVED_DESTINATION, 'Destination reached');
-                } else if (distanceValue <= 600) {
-                    Helper.emitByID(trip.riderId, ARRIVING_DESTINATION, 'Arriving destination');
-                    Helper.emitByID(trip.driverId, ARRIVING_DESTINATION, 'Arriving destination');
                 }
                 if (clients[trip.riderId]) {
                     const { firstName, avatar } = driver;
@@ -206,6 +191,21 @@ export default class TripHandler {
                     Helper.emitByID(
                         trip.riderId, DRIVER_LOCATION_UPDATED, JSON.stringify(driverDetails)
                     );
+                    if (currentTripStatus === 'accepted') {
+                        if (distanceValue <= 200) {
+                            await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVED', 'Driver has reached your location');
+                            await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVED', 'You are at the rider\'s location');
+                        } else if (distanceValue <= 600) {
+                            await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVING', 'Driver is around the corner');
+                            await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVING', 'You are almost at the rider\'s location');
+                        }
+                    } else if (distanceValue <= 200) {
+                        await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVED', 'You have reached your destination');
+                        await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVED', 'You have reached the destination');
+                    } else if (distanceValue <= 600) {
+                        await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVING', 'You are almost there');
+                        await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVING', 'You are almost at the rider\'s destination');
+                    }
                 }
                 await driver.save();
             } else {
@@ -306,33 +306,40 @@ export default class TripHandler {
                     }
                 }
             ]);
-            if (!drivers.length) {
-                return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
-            }
+            // if (!drivers.length) {
+            //     return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
+            // }
             let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
             tripResult = await tripResult.json();
             const tripDetails = {};
             if (tripResult.status === 'OK') {
                 const tripResponse = tripResult.rows[0].elements[0];
+                const tripDurationDistance = await Helper.getDurationAndDistance(tripResponse);
+                tripDetails.duration = tripDurationDistance.duration;
+                tripDetails.distance = tripDurationDistance.distance;
                 const estimatedFare = await Helper.getEstimatedFare(tripResponse);
                 tripDetails.estimatedFare = estimatedFare;
             }
-            const driverLon = drivers[0].location.coordinates[0];
-            const driverLat = drivers[0].location.coordinates[1];
-            let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
-            driverResult = await driverResult.json();
-            if (driverResult.status === 'OK') {
-                const driverResponse = driverResult.rows[0].elements[0];
-                const durationDistance = await Helper.getDurationAndDistance(driverResponse);
-                tripDetails.durationToRider = durationDistance.duration;
-                tripDetails.distanceToRider = durationDistance.distance;
+            if (drivers.length) {
+                const driverLon = drivers[0].location.coordinates[0];
+                const driverLat = drivers[0].location.coordinates[1];
+                let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
+                driverResult = await driverResult.json();
+                if (driverResult.status === 'OK') {
+                    const driverResponse = driverResult.rows[0].elements[0];
+                    const driverDurationDistance = await Helper.getDurationAndDistance(
+                        driverResponse
+                    );
+                    tripDetails.durationToRider = driverDurationDistance.duration;
+                    tripDetails.distanceToRider = driverDurationDistance.distance;
+                }
+                const driversCoords = drivers.map(driver => ({
+                    lon: driver.location.coordinates[0],
+                    lat: driver.location.coordinates[1]
+                }));
+                tripDetails.drivers = driversCoords;
             }
-            const driversCoords = drivers.map(driver => ({
-                lon: driver.location.coordinates[0],
-                lat: driver.location.coordinates[1]
-            }));
-            tripDetails.drivers = driversCoords;
-            // log(`THE TRIP DETAILS ====== ${JSON.stringify(tripDetails)}`);
+            log(`THE TRIP DETAILS ====== ${JSON.stringify(tripDetails)}`);
             return socket.emit(TRIP_DETAILS, JSON.stringify(tripDetails));
         } catch (error) {
             log(error);
@@ -544,6 +551,7 @@ export default class TripHandler {
             };
             const newRiderTrip = {
                 tripId: trip._id,
+                driverId: id,
                 pickUp,
                 pickUpLon,
                 pickUpLat,
@@ -561,6 +569,7 @@ export default class TripHandler {
             const newDriverTrip = {
                 tripId: trip._id,
                 riderName: rider.firstName,
+                riderId,
                 pickUp,
                 pickUpLon,
                 pickUpLat,

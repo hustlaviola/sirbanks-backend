@@ -37,12 +37,10 @@ const RiderSchema = new Schema({
     },
     device: {
         platform: {
-            type: String,
-            required: true
+            type: String
         },
         token: {
-            type: String,
-            required: true
+            type: String
         }
     },
     location: {
@@ -63,7 +61,7 @@ const RiderSchema = new Schema({
     currentTripStatus: {
         type: String,
         default: null,
-        enum: ['accepted', 'transit']
+        enum: [null, 'accepted', 'transit']
     },
     onboardingStatus: {
         type: String,

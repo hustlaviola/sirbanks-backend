@@ -12,10 +12,36 @@ const router = express.Router();
 
 router.post('/onboarding',
     AuthValidator.userAuth,
-    validator('admin_onboading'),
+    validator('user_onboarding'),
     validate,
     AdminMiddleware.validateAdminOnboarding,
     AdminController.onboardAdmin);
+
+router.post('/drivers/onboarding',
+    AuthValidator.userAuth,
+    validator('user_onboarding'),
+    validate,
+    AdminMiddleware.validateAddUser,
+    AdminController.addUser);
+
+router.post('/riders/onboarding',
+    AuthValidator.userAuth,
+    validator('user_onboarding'),
+    validate,
+    AdminMiddleware.validateAddUser,
+    AdminController.addUser);
+
+router.put('/drivers/:reference/onboarding/vehicle_details',
+    AuthValidator.userAuth,
+    validator('vehicle_details'),
+    validate,
+    UserValidator.validateVehicleDetails,
+    UserController.updateVehicleDetails);
+
+router.put('/drivers/:reference/onboarding/complete',
+    AuthValidator.userAuth,
+    UserValidator.validateFileUploads,
+    UserController.upLoadDriverFiles);
 
 router.post('/login',
     validator('admin_login'),
@@ -25,6 +51,8 @@ router.post('/login',
 
 router.patch('/upload_avatar',
     AuthValidator.userAuth,
+    validator('avatar'),
+    validate,
     UserValidator.validateAvatarUpload,
     UserController.uploadAvatar);
 
@@ -65,6 +93,24 @@ router.get('/riders/:userId/trips',
     validate,
     UserValidator.validateGetUserTrips,
     UserController.getUserTrips);
+
+router.put('/riders/:userId/',
+    AuthValidator.userAuth,
+    validator('update_user'),
+    validate,
+    UserValidator.validateUserUpdate,
+    UserController.updateUser);
+
+router.put('/drivers/:userId/',
+    AuthValidator.userAuth,
+    validator('update_user'),
+    validate,
+    UserValidator.validateUserUpdate,
+    UserController.updateUser);
+
+// router.get('/addem',
+//     AuthValidator.userAuth,
+//     AdminController.addCars);
 
 // router.get('/drivers/:userId/trips/:tripId',
 //     AuthValidator.userAuth,

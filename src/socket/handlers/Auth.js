@@ -1,5 +1,4 @@
 /* eslint-disable import/no-cycle */
-import debug from 'debug';
 import validator from 'validator';
 import {
     ERROR,
@@ -10,8 +9,9 @@ import Rider from '../../models/Rider';
 import Helper from '../Helper';
 
 import { clients } from '../index';
+import { debug } from '../../config/logger';
 
-const log = debug('app:auth');
+const log = debug('app:socket:auth');
 
 /**
  * @class
