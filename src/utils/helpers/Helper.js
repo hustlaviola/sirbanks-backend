@@ -6,6 +6,7 @@ import validator from 'validator';
 
 import messages from '../messages';
 import sendMail from '../sendMail';
+import admin from '../../config/firebase';
 
 /**
  * @class Helper
@@ -206,4 +207,78 @@ export default class Helper {
         }));
         return tripsDTO;
     }
+
+    /**
+     * @method sendPNToDevice
+     * @description
+     * @static
+     * @param {object} token
+     * @param {object} title
+     * @param {object} body
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static sendPNToDevice(token, title, body) {
+        const message = {
+            notification: {
+                title,
+                body
+            },
+            android: {
+                notification: {
+                    sound: 'default'
+                }
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        sound: 'default'
+                    }
+                }
+            },
+            token
+        };
+        return admin.messaging().send(message);
+    }
+
+    // /**
+    //  * @method sendPushNotifications
+    //  * @description
+    //  * @static
+    //  * @param {object} deviceToken
+    //  * @returns {object} JSON response
+    //  * @memberof Helper
+    //  */
+    // static sendPushNotifications(deviceToken) {
+    //     const message = {
+    //         data: {
+    //             score: '850',
+    //             time: '2:45'
+    //         },
+    //         token: deviceToken
+    //     };
+
+    //     // Send a message to the device corresponding to the provided
+    //     // registration token.
+    //     return admin.messaging().send(message);
+    // }
+
+    // /**
+    //  * @method sendPushNotificationss
+    //  * @description
+    //  * @static
+    //  * @param {object} deviceToken
+    //  * @returns {object} JSON response
+    //  * @memberof Helper
+    //  */
+    // static sendPushNotificationss(deviceToken) {
+    //     const message = {
+    //         notification: {
+    //             title: 'Test',
+    //             body: 'You are logged in'
+    //         },
+    //         token: deviceToken
+    //     };
+    //     return admin.messaging().send(message);
+    // }
 }

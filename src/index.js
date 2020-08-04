@@ -18,6 +18,7 @@ import handleError from './utils/errorHandler/handleError';
 import winstonInstance, { debug } from './config/logger';
 
 import SocketServer from './socket/index';
+// import sendIt from './config/notify';
 
 const app = express();
 
@@ -29,7 +30,11 @@ app.use(express.json());
 // Compress response
 app.use(compression());
 
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.urlencoded({
+    extended: true,
+    limit: '50mb'
+    // parameterLimit: 100000
+}));
 app.use(fileupload({
     limits: {
         fileSize: 10 * 1024 * 1024
@@ -88,5 +93,7 @@ const server = http.createServer(app);
 SocketServer.createServer(server);
 
 server.listen(PORT, () => log(`listening on port: ${PORT}..`));
+
+// sendIt();
 
 export default server;

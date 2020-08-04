@@ -37,12 +37,10 @@ const DriverSchema = new Schema({
     },
     device: {
         platform: {
-            type: String,
-            required: true
+            type: String
         },
         token: {
-            type: String,
-            required: true
+            type: String
         }
     },
     isEmailVerified: {
@@ -121,7 +119,7 @@ const DriverSchema = new Schema({
     currentTripStatus: {
         type: String,
         default: null,
-        enum: ['accepted', 'transit']
+        enum: [null, 'accepted', 'transit']
     },
     walletBalance: {
         type: Number,

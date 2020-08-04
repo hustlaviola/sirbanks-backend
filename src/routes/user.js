@@ -5,6 +5,8 @@ import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import UserValidator from '../middlewares/User';
 import UserController from '../controllers/User';
+import AdminMiddleware from '../middlewares/Admin';
+import AdminController from '../controllers/Admin';
 
 const router = express.Router();
 
@@ -20,10 +22,27 @@ router.get('/:userId/trips',
     UserValidator.validateGetUserTrips,
     UserController.getUserTrips);
 
+router.get('/avatar',
+    AuthValidator.userAuth,
+    UserValidator.validateGetAvatar,
+    UserController.getAvatar);
+
 router.patch('/upload_avatar',
     AuthValidator.userAuth,
+    validator('avatar'),
+    validate,
     UserValidator.validateAvatarUpload,
     UserController.uploadAvatar);
+
+router.delete('/riders/:userId',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateDeleteUser,
+    AdminController.deleteUser);
+
+router.delete('/drivers/:userId',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateDeleteUser,
+    AdminController.deleteUser);
 
 // router.get('/:userId/transactions',
 //     AuthValidator.userAuth,

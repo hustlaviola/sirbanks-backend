@@ -4,6 +4,7 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import fetch from 'node-fetch';
+import HelperUtil from '../utils/helpers/Helper';
 
 import {
     clients, reqStatus, pendingRequests, allTripRequests
@@ -11,6 +12,9 @@ import {
 // import TripRequest from '../models/TripRequest';
 // import Trip from '../models/Trip';
 import { RIDE_REQUEST, TIMEOUT, NO_DRIVER_FOUND } from './events';
+import { debug } from '../config/logger';
+
+const log = debug('app:socket:trip');
 
 const { GOOGLE_MAPS_API_KEY } = process.env;
 
@@ -76,7 +80,7 @@ export default class Helper {
             distance: distance.text,
             distanceVal: distance.value
         };
-        console.log(`DURATION N DISTANCE ===== ${JSON.stringify(details)}`);
+        log(`DURATION N DISTANCE ===== ${JSON.stringify(details)}`);
         return details;
     }
 
@@ -102,7 +106,7 @@ export default class Helper {
             lowerEstimate,
             higherEstimate
         };
-        console.log(`ESTIMATED FARE ===== ${JSON.stringify(estimatedFare)}`);
+        log(`ESTIMATED FARE ===== ${JSON.stringify(estimatedFare)}`);
         return estimatedFare;
     }
 
@@ -129,7 +133,7 @@ export default class Helper {
         const driverLat = driver.location.coordinates[1];
         let result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
         result = await result.json();
-        console.log('result ========================', result);
+        log('result ========================', result);
         // let originArea = null;
         let durationToRider = null;
         let distanceToRider = null;
@@ -157,19 +161,20 @@ export default class Helper {
             dropOffLat,
             paymentMethod
         };
-        console.log('tripRequest ========================', tripRequest);
+        log('tripRequest ========================', tripRequest);
         reqStatus[tripRequest.tripId] = {
             reqInfo: data,
             drivers
         };
         allTripRequests[tripRequest.tripId] = tripRequest;
-        console.log('driver id =======', driver._id);
+        log('driver id =======', driver._id);
         if (clients[driver._id]) {
             clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
-            console.log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
+            HelperUtil.sendPNToDevice(driver.device.token, 'ARRIVED', 'Driver has reached your location').catch(err => log(err));
+            log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
             pendingRequests[tripRequest.tripId] = setInterval(() => {
                 quantum--;
-                console.log(quantum);
+                log(quantum);
                 if (quantum < 1) {
                     clearInterval(pendingRequests[tripRequest.tripId]);
                     delete pendingRequests[tripRequest.tripId];

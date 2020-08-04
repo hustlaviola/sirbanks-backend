@@ -17,15 +17,17 @@ router.get('/online',
     UserValidator.validateOnlineDrivers,
     UserController.getOnlineDrivers);
 
-router.post('/onboarding/vehicle_details',
+router.put('/onboarding/vehicle_details',
     AuthValidator.userAuth,
     validator('vehicle_details'),
     validate,
     UserValidator.validateVehicleDetails,
     UserController.updateVehicleDetails);
 
-router.post('/onboarding/complete',
+router.put('/onboarding/complete',
     AuthValidator.userAuth,
+    validator('complete_onboarding'),
+    validate,
     UserValidator.validateFileUploads,
     UserController.upLoadDriverFiles);
 

@@ -1,5 +1,4 @@
 /* eslint-disable import/no-cycle */
-import debug from 'debug';
 import validator from 'validator';
 import {
     ERROR,
@@ -9,8 +8,9 @@ import Chat from '../../models/Chat';
 import Helper from '../Helper';
 
 import { clients } from '../index';
+import { debug } from '../../config/logger';
 
-const log = debug('app:auth');
+const log = debug('app:socket:chat');
 
 /**
  * @class
@@ -59,7 +59,7 @@ export default class Auth {
             await Chat.create(payload);
             const senderName = clients[id].user.firstName;
             payload.senderName = senderName;
-            payload.recipientId = undefined;
+            // payload.recipientId = undefined;
             if (!clients[recipientId]) {
                 return Helper.emitById(id, ERROR, 'Recipient is offline');
             }

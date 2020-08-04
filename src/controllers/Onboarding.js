@@ -95,9 +95,10 @@ const log = debug('app:onboarding-controller');
                 id, firstName, email, onboardingStatus, isEmailVerified
             } = user;
             const token = await AuthService.createRegToken(id, 'email');
-            Helper.sendEmailLink(firstName, email, token.token, req.headers.host, 'email');
             const userToken = await Helper.generateToken({ id, role: user.role });
             await user.save();
+            Helper.sendEmailLink(firstName, email, token.token, req.headers.host, 'email')
+                .catch(err => log(err));
             return response(res, httpStatus.CREATED, messages.onboardingComplete, {
                 onboardingStatus,
                 token: userToken,

@@ -132,6 +132,22 @@ export default class UserService {
     }
 
     /**
+     * @method findByReferenceNRole
+     * @description
+     * @static
+     * @param {string} referenceId
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async findByReferenceNRole(referenceId, role) {
+        if (role === 'rider') {
+            return Rider.findOne({ referenceId }).select('-password');
+        }
+        return Driver.findOne({ referenceId }).select('-password');
+    }
+
+    /**
      * @method getUserTrips
      * @description
      * @static
@@ -180,5 +196,21 @@ export default class UserService {
      */
     static async getOnlineDrivers() {
         return Driver.countDocuments({ isOnline: true });
+    }
+
+    /**
+     * @method getAvatar
+     * @description
+     * @static
+     * @param {string} id - User id
+     * @param {boolean} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static getAvatar(id, role) {
+        if (role === 'rider') {
+            return Rider.findById(id).select('avatar');
+        }
+        return Driver.findById(id).select('avatar');
     }
 }

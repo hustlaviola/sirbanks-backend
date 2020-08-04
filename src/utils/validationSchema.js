@@ -173,14 +173,43 @@ const validator = method => {
         ];
     case 'vehicle_details':
         return [
-            body('make', 'make is required').exists(),
-            body('model', 'model is required').exists(),
-            body('year', 'year is required').exists(),
-            body('color', 'color is required').exists(),
-            body('numberPlate', 'number Plate is required').exists(),
-            body('licenceNo', 'Licence is required').exists(),
-            body('issueDate', 'issueDate is required').exists(),
-            body('expDate', 'expDate is required').exists()
+            body('year')
+                .exists()
+                .withMessage('year is required')
+                .isInt()
+                .isLength({ min: 4, max: 4 })
+                .withMessage('Please provide a valid year'),
+            body('make')
+                .exists()
+                .withMessage('make is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('make must be in the range of 2 to 50 characters'),
+            body('model')
+                .exists()
+                .withMessage('model is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('model must be in the range of 2 to 50 characters'),
+            body('numberPlate')
+                .exists()
+                .withMessage('numberPlate is required')
+                .isLength({ min: 2, max: 20 })
+                .withMessage('numberPlate must be in the range of 2 to 20 characters'),
+            body('color')
+                .exists()
+                .withMessage('color is required')
+                .isLength({ min: 2, max: 20 })
+                .withMessage('color must be in the range of 2 to 20 characters'),
+            body('licenceNo')
+                .exists()
+                .withMessage('licenceNo is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('licenceNo must be in the range of 2 to 50 characters'),
+            body('issueDate')
+                .exists()
+                .withMessage('issueDate is required'),
+            body('expDate')
+                .exists()
+                .withMessage('expDate is required')
         ];
     case 'userId':
         return [
@@ -190,7 +219,7 @@ const validator = method => {
                 .isMongoId()
                 .withMessage('Please provide a valid userId')
         ];
-    case 'admin_onboading':
+    case 'user_onboarding':
         return [
             body('firstName')
                 .exists()
@@ -234,6 +263,74 @@ const validator = method => {
                 .withMessage('tripId is required')
                 .isMongoId()
                 .withMessage('Please provide a valid tripId')
+        ];
+    case 'update_user':
+        return [
+            param('userId')
+                .exists()
+                .withMessage('userId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid userId'),
+            body('firstName')
+                .optional()
+                .isLength({ min: 2, max: 50 })
+                .withMessage('firstName must be between 2 and 50 characters inclusive'),
+            body('lastName')
+                .optional()
+                .isLength({ min: 2, max: 50 })
+                .withMessage('lastName must be between 2 and 50 characters inclusive'),
+            body('email')
+                .optional()
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('year')
+                .optional()
+                .isInt()
+                .isLength({ min: 4, max: 4 })
+                .withMessage('Please provide a valid year'),
+            body('make')
+                .optional()
+                .isLength({ min: 2, max: 50 })
+                .withMessage('make must be in the range of 2 to 50 characters'),
+            body('model')
+                .optional()
+                .isLength({ min: 2, max: 50 })
+                .withMessage('model must be in the range of 2 to 50 characters'),
+            body('numberPlate')
+                .optional()
+                .isLength({ min: 2, max: 20 })
+                .withMessage('numberPlate must be in the range of 2 to 20 characters'),
+            body('color')
+                .optional()
+                .isLength({ min: 2, max: 20 })
+                .withMessage('color must be in the range of 2 to 20 characters'),
+            body('licenceNo')
+                .optional()
+                .isLength({ min: 2, max: 50 })
+                .withMessage('licenceNo must be in the range of 2 to 50 characters')
+        ];
+    case 'avatar':
+        return [
+            body('avatar')
+                .exists()
+                .withMessage('avatar is required')
+                // .isBase64({ urlSafe: true })
+                // .withMessage('invalid avatar format')
+        ];
+    case 'complete_onboarding':
+        return [
+            body('avatar')
+                .exists()
+                .withMessage('avatar is required'),
+            body('licence')
+                .exists()
+                .withMessage('licence is required'),
+            body('insurance')
+                .exists()
+                .withMessage('insurance is required'),
+            body('vehiclePaper')
+                .exists()
+                .withMessage('vehiclePaper is required')
         ];
     // case 'get_users':
     //     return [
