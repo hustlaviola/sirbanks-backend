@@ -6,7 +6,7 @@ import onboardingRouter from './onboarding';
 import userRouter from './user';
 import adminRouter from './admin';
 import tripRouter from './trip';
-import paymentRouter from './payment';
+import transactionRouter from './transaction';
 import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AuthValidator from '../middlewares/Auth';
@@ -50,5 +50,5 @@ export {
     userRouter,
     adminRouter,
     tripRouter,
-    paymentRouter
+    transactionRouter
 };

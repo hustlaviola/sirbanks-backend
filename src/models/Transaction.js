@@ -9,11 +9,19 @@ const TransactionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    transactionType: {
+    type: {
         type: String,
-        enum: ['credit', 'debit']
+        enum: ['fund_wallet', 'add_card', 'payment', 'payout']
+    },
+    status: {
+        type: String,
+        default: 'initiated',
+        enum: ['initiated', 'success', 'failed']
     },
     narration: {
+        type: String
+    },
+    reference: {
         type: String
     },
     createdAt: {
