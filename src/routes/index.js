@@ -6,6 +6,7 @@ import onboardingRouter from './onboarding';
 import userRouter from './user';
 import adminRouter from './admin';
 import tripRouter from './trip';
+import paymentRouter from './payment';
 import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AuthValidator from '../middlewares/Auth';
@@ -42,5 +43,12 @@ indexRouter.get('/api/v1/makes/:makeId/models',
     AdminController.getModels);
 
 export {
-    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter, tripRouter
+    driverRouter,
+    authRouter,
+    onboardingRouter,
+    indexRouter,
+    userRouter,
+    adminRouter,
+    tripRouter,
+    paymentRouter
 };

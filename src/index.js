@@ -11,14 +11,20 @@ import http from 'http';
 import connectDB from './config/db';
 import messages from './utils/messages';
 import {
-    driverRouter, authRouter, onboardingRouter, indexRouter, userRouter, adminRouter, tripRouter
+    driverRouter,
+    authRouter,
+    onboardingRouter,
+    indexRouter,
+    userRouter,
+    adminRouter,
+    tripRouter,
+    paymentRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
 import winstonInstance, { debug } from './config/logger';
 
 import SocketServer from './socket/index';
-// import sendIt from './config/notify';
 
 const app = express();
 
@@ -60,6 +66,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/trips', tripRouter);
+app.use('/api/v1/payment', paymentRouter);
 app.use(indexRouter);
 
 app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
@@ -92,7 +99,5 @@ const server = http.createServer(app);
 SocketServer.createServer(server);
 
 server.listen(PORT, () => log(`listening on port: ${PORT}..`));
-
-// sendIt();
 
 export default server;
