@@ -59,9 +59,11 @@ export default class Payment {
      * @returns {object} JSON response
      * @memberof Trip
      */
-    static async confirmPayment(req, res, next) {
+    static async confirmPayment(req, res) {
         log('IP ADDRESS: ', req.ip);
+        log(JSON.stringify(req.body));
         const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY).update(JSON.stringify(req.body)).digest('hex');
+        log('HASH', hash);
         if (hash === req.headers['x-paystack-signature']) {
             log(req.body.data);
             log(req.body.data.custommer);
