@@ -1,15 +1,15 @@
 import httpStatus from 'http-status';
-// import request from 'request';
+import request from 'request';
 import crypto from 'crypto';
 
-// import paystack from '../config/paystack';
+import paystack from '../config/paystack';
 import TransactionService from '../services/TransactionService';
 import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
 
 const log = debug('app:onboarding-middleware');
 
-// const { initializePayment, verifyPayment } = paystack(request);
+const { initializePayment, verifyPayment } = paystack(request);
 
 /**
  * @class
@@ -94,5 +94,40 @@ export default class Transaction {
             log(JSON.stringify(req.body));
         }
         res.send(200);
+    }
+
+    /**
+     * @method initiatePayment
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Transaction
+     */
+    static async initiatePayment(req, res, next) {
+        const {
+            amount, email, name
+        } = req.body;
+        const form = {
+            amount: amount * 100,
+            email,
+            full_name: name
+        };
+        form.metadata = {
+            full_name: form.full_name
+        };
+        initializePayment(form, (err, body) => {
+            if (err) {
+                log(err);
+                return next(new APIError(
+                    'Error while initializing payment', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            log(body);
+            const response = JSON.parse(body);
+            res.send(response);
+        });
     }
 }

@@ -36,6 +36,9 @@ app.use(express.json());
 // Compress response
 app.use(compression());
 
+// enable CORS - Cross Origin Resource Sharing
+app.use(cors());
+
 app.use(express.urlencoded({
     extended: true,
     limit: '50mb'

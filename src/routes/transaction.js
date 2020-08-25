@@ -18,4 +18,7 @@ router.post('/',
 router.post('/confirmation',
     TransactionMiddleware.confirmPayment);
 
+router.post('/initialize',
+    TransactionMiddleware.initiatePayment);
+
 export default router;
