@@ -332,6 +332,32 @@ const validator = method => {
                 .exists()
                 .withMessage('vehiclePaper is required')
         ];
+    case 'add_transaction':
+        return [
+            body('name')
+                .exists()
+                .withMessage('email is required')
+                .isLength({ min: 5, max: 100 })
+                .withMessage('name must be between 5 and 100 characters inclusive'),
+            body('reference')
+                .exists()
+                .withMessage('reference is required'),
+            body('email')
+                .exists()
+                .withMessage('email is required')
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('amount')
+                .exists()
+                .withMessage('amount is required')
+                .isNumeric()
+                .withMessage('please provide a valid amount'),
+            body('type')
+                .exists()
+                .withMessage('type is required')
+                .isIn(['fund_wallet', 'add_card', 'payment', 'payout'])
+                .withMessage('invalid type')
+        ];
     // case 'get_users':
     //     return [
     //         param('role')

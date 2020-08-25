@@ -22,7 +22,8 @@ const TransactionSchema = new mongoose.Schema({
         type: String
     },
     reference: {
-        type: String
+        type: String,
+        required: true
     },
     createdAt: {
         type: Date,

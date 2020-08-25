@@ -28,4 +28,16 @@ import Transaction from '../models/Transaction';
     static async getUserTransactionHistory(id) {
         return Transaction.find({ user: id });
     }
+
+    /**
+     * @method getTransactionByRef
+     * @description
+     * @static
+     * @param {object} reference
+     * @returns {object} JSON response
+     * @memberof TransactionService
+     */
+    static async getTransactionByRef(reference) {
+        return Transaction.findOne({ reference });
+    }
 }

@@ -31,6 +31,11 @@ export default class Transaction {
         const {
             amount, email, name, reference, type
         } = req.body;
+        const exists = await TransactionService.getTransactionByRef(reference);
+        log('eXIST', exists);
+        if (exists) {
+            return next(new APIError('reference already exists', httpStatus.CONFLICT, true));
+        }
         const { id } = req.user;
         const transaction = {
             amount,
