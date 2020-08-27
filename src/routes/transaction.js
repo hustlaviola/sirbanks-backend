@@ -21,4 +21,7 @@ router.post('/confirmation',
 router.post('/initialize',
     TransactionMiddleware.initiatePayment);
 
+router.post('/refund',
+    TransactionMiddleware.initiatePayment);
+
 export default router;

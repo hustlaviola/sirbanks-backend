@@ -11,7 +11,7 @@ const TransactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['fund_wallet', 'add_card', 'payment', 'payout']
+        enum: ['fund_wallet', 'add_card', 'payout']
     },
     status: {
         type: String,
@@ -24,6 +24,12 @@ const TransactionSchema = new mongoose.Schema({
     reference: {
         type: String,
         required: true
+    },
+    paidAt: {
+        type: Date
+    },
+    updatedAt: {
+        type: Date
     },
     createdAt: {
         type: Date,
