@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import moment from 'moment';
@@ -7,6 +8,8 @@ import validator from 'validator';
 import messages from '../messages';
 import sendMail from '../sendMail';
 import admin from '../../config/firebase';
+
+const algorithm = 'aes-256-cbc';
 
 /**
  * @class Helper
@@ -49,6 +52,40 @@ export default class Helper {
      */
     static async comparePassword(password, hashPassword) {
         return bcrypt.compare(password, hashPassword);
+    }
+
+    /**
+     * @method encrypt
+     * @description
+     * @static
+     * @param {object} text
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static async encrypt(text) {
+        const key = crypto.randomBytes(32);
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+        let encrypted = cipher.update(text);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        return { iv: iv.toString('hex'), key, crypt: encrypted.toString('hex') };
+    }
+
+    /**
+     * @method decrypt
+     * @description
+     * @static
+     * @param {object} crypted
+     * @returns {object} JSON response
+     * @memberof Helper
+     */
+    static async decrypt(crypted) {
+        const cryptedIv = Buffer.from(crypted.iv, 'hex');
+        const encryptedText = Buffer.from(crypted.crypt, 'hex');
+        const decipher = crypto.createDecipheriv(algorithm, Buffer.from(crypted.key), cryptedIv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString();
     }
 
     /**

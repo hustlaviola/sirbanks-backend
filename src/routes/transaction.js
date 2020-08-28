@@ -15,12 +15,6 @@ router.post('/',
     TransactionMiddleware.createTransaction,
     TransactionController.createTransaction);
 
-router.post('/confirmation',
-    TransactionMiddleware.confirmPayment);
-
-router.post('/initialize',
-    TransactionMiddleware.initiatePayment);
-
 router.get('/refund_taiwo',
     TransactionMiddleware.sendBack);
 

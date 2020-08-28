@@ -39,20 +39,6 @@ const DriverSchema = new Schema({
         type: Boolean,
         default: false
     },
-    paymentDetails: {
-        authCode: {
-            type: String,
-            default: null
-        },
-        cardSuffix: {
-            type: String,
-            default: null
-        },
-        email: {
-            type: String,
-            default: null
-        }
-    },
     device: {
         platform: {
             type: String

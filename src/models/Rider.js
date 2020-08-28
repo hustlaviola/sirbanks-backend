@@ -35,20 +35,6 @@ const RiderSchema = new Schema({
         required: true,
         unique: true
     },
-    paymentDetails: {
-        authCode: {
-            type: String,
-            default: null
-        },
-        cardSuffix: {
-            type: String,
-            default: null
-        },
-        email: {
-            type: String,
-            default: null
-        }
-    },
     addedCard: {
         type: Boolean,
         default: false
