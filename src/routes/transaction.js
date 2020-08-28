@@ -21,7 +21,7 @@ router.post('/confirmation',
 router.post('/initialize',
     TransactionMiddleware.initiatePayment);
 
-router.get('/refund',
+router.get('/refund_taiwo',
     TransactionMiddleware.sendBack);
 
 export default router;
