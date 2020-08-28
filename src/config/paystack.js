@@ -33,7 +33,7 @@ const paystack = request => {
 
     const refund = (form, mycallback) => {
         const options = {
-            url: 'api.paystack.co/refund',
+            url: 'https://api.paystack.co/refund',
             headers: {
                 authorization: MySecretKey,
                 'content-type': 'application/json',
