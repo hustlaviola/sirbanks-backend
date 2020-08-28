@@ -1,14 +1,10 @@
 import httpStatus from 'http-status';
-import request from 'request';
 
-import paystack from '../config/paystack';
 import TransactionService from '../services/TransactionService';
 import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
 
 const log = debug('app:onboarding-middleware');
-
-const { refund } = paystack(request);
 
 /**
  * @class
@@ -50,30 +46,5 @@ export default class Transaction {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
-    }
-
-    /**
-     * @method sendBack
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Transaction
-     */
-    static async sendBack(req, res) {
-        log('REFUNDING TAIWO');
-        const form = { transaction: 'b35e8066-6ed5-43d4-abf3-0040e86342df', amount: 9500 };
-        refund(form, (err, body) => {
-            if (err) {
-                log(err);
-                // TODO
-            } else {
-                log('TAIWO REFUNDED');
-                log(body);
-            }
-        });
-        res.status(200).send('TAIWO REFUNDED');
     }
 }
