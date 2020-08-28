@@ -40,7 +40,7 @@ router.put('/drivers/:reference/onboarding/vehicle_details',
 
 router.put('/drivers/:reference/onboarding/complete',
     AuthValidator.userAuth,
-    UserValidator.validateFileUploads,
+    UserValidator.validateFiles,
     UserController.upLoadDriverFiles);
 
 router.post('/login',

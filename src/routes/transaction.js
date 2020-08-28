@@ -15,7 +15,4 @@ router.post('/',
     TransactionMiddleware.createTransaction,
     TransactionController.createTransaction);
 
-router.get('/refund_taiwo',
-    TransactionMiddleware.sendBack);
-
 export default router;

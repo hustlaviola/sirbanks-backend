@@ -36,11 +36,6 @@ export const uploadBase64Image = async (image, publicId, type, role = 'driver') 
         public_id: publicId,
         invalidate: true
     }
-    // https://res.cloudinary.com/viola/image/upload/v1596876441/riders/avatars/PB-5ffa0549-01f9-49ed-b616-80deb7dc0971.png
-    // https://res.cloudinary.com/viola/image/upload/v1596876248/riders/avatars/PB-5ffa0549-01f9-49ed-b616-80deb7dc0971.png
-    // https://res.cloudinary.com/viola/image/upload/v1596876041/riders/avatars/PB-5ffa0549-01f9-49ed-b616-80deb7dc0971.png
-    // https://res.cloudinary.com/viola/image/upload/v1596874318/riders/avatars/PB-5ffa0549-01f9-49ed-b616-80deb7dc0971.png
-    // https://res.cloudinary.com/viola/image/upload/v1596873803/riders/avatars/PB-5ffa0549-01f9-49ed-b616-80deb7dc0971.png
 );
 
 // /**

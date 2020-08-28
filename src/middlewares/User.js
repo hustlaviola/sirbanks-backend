@@ -5,7 +5,7 @@ import isBase64 from 'is-base64';
 
 import UserService from '../services/UserService';
 import Helper from '../utils/helpers/Helper';
-import { uploadBase64Image } from '../utils/helpers/image';
+import uploadImage, { uploadBase64Image } from '../utils/helpers/image';
 import messages from '../utils/messages';
 import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
@@ -293,6 +293,139 @@ export default class UserValidator {
                 uploadBase64Image(insurance, user.publicId, 'insurance'),
                 uploadBase64Image(vehiclePaper, user.publicId, 'vehiclePaper')
             ];
+            const values = await Promise.all(tasks);
+            user.avatar = values[0].secure_url;
+            user.vehicleDetails.licenceDetails.licenceUrl = values[1].secure_url;
+            user.vehicleDetails.insuranceUrl = values[2].secure_url;
+            user.vehicleDetails.vehiclePaperUrl = values[3].secure_url;
+            user.onboardingStatus = 'completed';
+            await user.save();
+            req.dbUser = user;
+            req.isAdmin = isAdmin;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateFiles
+     * @description Validates driver file uploads
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserValidator
+     */
+    static async validateFiles(req, res, next) {
+        try {
+            const { files } = req;
+            const { reference } = req.params;
+            let user;
+            let isAdmin = false;
+            if (req.user.permissions) {
+                if (req.user.permissions < 3) {
+                    return next(new APIError(
+                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
+                if (!reference) {
+                    return next(new APIError(
+                        'reference is required', httpStatus.BAD_REQUEST, true
+                    ));
+                }
+                const isValidRef = Helper.isValidKey(reference, 'RF-');
+                if (!isValidRef) {
+                    return next(new APIError(
+                        messages.invalidUserRef, httpStatus.BAD_REQUEST, true
+                    ));
+                }
+                isAdmin = true;
+                user = await UserService.findByReferenceNRole(reference, 'driver');
+            } else {
+                user = await UserService.findByIdAndRole(req.user.id, 'driver');
+            }
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (req.url.includes('complete') && user.onboardingStatus === 'completed') {
+                return next(new APIError(
+                    messages.alreadyCompletedOnboarding, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (req.url.includes('complete') && user.onboardingStatus !== 'vehicle_details') {
+                return next(new APIError(
+                    'Please update your vehicle details', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            const expectedFileKeys = ['avatar', 'licence', 'insurance', 'vehiclePaper'];
+            const {
+                avatar, licence, insurance, vehiclePaper
+            } = req.files;
+            // if (!isBase64(avatar, { mimeRequired: true })) {
+            //     return next(new APIError(
+            //         'Invalid avatar format', httpStatus.BAD_REQUEST, true
+            //     ));
+            // }
+            // if (!isBase64(licence, { mimeRequired: true })) {
+            //     return next(new APIError(
+            //         'Invalid licence format', httpStatus.BAD_REQUEST, true
+            //     ));
+            // }
+            // if (!isBase64(insurance, { mimeRequired: true })) {
+            //     return next(new APIError(
+            //         'Invalid insurance format', httpStatus.BAD_REQUEST, true
+            //     ));
+            // }
+            // if (!isBase64(vehiclePaper, { mimeRequired: true })) {
+            //     return next(new APIError(
+            //         'Invalid vehiclePaper format', httpStatus.BAD_REQUEST, true
+            //     ));
+            // }
+            const myFiles = [avatar, licence, insurance, vehiclePaper];
+            const errMessages = [];
+            for (let i = 0; i < expectedFileKeys.length; i++) {
+                if (!files[expectedFileKeys[i]]
+            || files[expectedFileKeys[i]].mimetype === 'text/plain') {
+                    errMessages.push(`${expectedFileKeys[i]} is required`);
+                } else if (!(myFiles[i].mimetype === 'image/png'
+                    || myFiles[i].mimetype === 'image/jpeg')) {
+                    errMessages.push(`${expectedFileKeys[i]} file format not supported`);
+                }
+            }
+            if (errMessages.length > 0) {
+                return next(new APIError(
+                    errMessages, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            // const start = Date.now();
+            // const avatar2 = await uploadImage(avatar, user.email, 'avatar');
+            // // avatar = avatar.secure_url;
+            // const insurance2 = await uploadImage(insurance, user.email, 'insurance');
+            // // const insuranceUrl = insurance.secure_url;
+            // const vehiclePaper2 = await uploadImage(vehiclePaper, user.email, 'vehiclePaper');
+            // // const vehiclePaperUrl = vehiclePaper.secure_url;
+            // const licence2 = await uploadImage(licence, user.email, 'licence');
+            // // const licenceUrl = licence.secure_url;
+            // const mark = Date.now() - start;
+            // console.log(mark);
+            // console.log(process.memoryUsage());
+            const tasks = [
+                uploadImage(avatar, user.publicId, 'avatar'),
+                uploadImage(licence, user.publicId, 'licence'),
+                uploadImage(insurance, user.publicId, 'insurance'),
+                uploadImage(vehiclePaper, user.publicId, 'vehiclePaper')
+            ];
+            // const tasks = [
+            //     uploadBase64Image(avatar, user.publicId, 'avatar'),
+            //     uploadBase64Image(licence, user.publicId, 'licence'),
+            //     uploadBase64Image(insurance, user.publicId, 'insurance'),
+            //     uploadBase64Image(vehiclePaper, user.publicId, 'vehiclePaper')
+            // ];
             const values = await Promise.all(tasks);
             user.avatar = values[0].secure_url;
             user.vehicleDetails.licenceDetails.licenceUrl = values[1].secure_url;
