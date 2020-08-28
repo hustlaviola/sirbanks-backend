@@ -22,6 +22,6 @@ router.post('/initialize',
     TransactionMiddleware.initiatePayment);
 
 router.post('/refund',
-    TransactionMiddleware.initiatePayment);
+    TransactionMiddleware.sendBack);
 
 export default router;
