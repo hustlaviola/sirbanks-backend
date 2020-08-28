@@ -176,7 +176,7 @@ export default class Transaction {
      */
     static async sendBack(req, res) {
         log('REFUNDING TAIWO');
-        const form = { transaction: 'b35e8066-6ed5-43d4-abf3-0040e86342df' };
+        const form = { transaction: 'b35e8066-6ed5-43d4-abf3-0040e86342df', amount: 9500 };
         refund(form, (err, body) => {
             if (err) {
                 log(err);
