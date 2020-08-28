@@ -18,7 +18,8 @@ import {
     userRouter,
     adminRouter,
     tripRouter,
-    transactionRouter
+    transactionRouter,
+    paymentRouter
 } from './routes/index';
 import APIError from './utils/errorHandler/ApiError';
 import handleError from './utils/errorHandler/handleError';
@@ -67,6 +68,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/trips', tripRouter);
 app.use('/api/v1/transactions', transactionRouter);
+app.use('/api/v1/payment', paymentRouter);
 app.use(indexRouter);
 
 app.get('/', (req, res) => res.send(`<h1>${messages.root}</h1>`));
