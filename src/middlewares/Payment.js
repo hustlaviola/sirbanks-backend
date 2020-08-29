@@ -160,4 +160,35 @@ export default class Payment {
     // static async getCards(req, res, next) {
 
     // }
+
+    /**
+     * @method removeCard
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async removeCard(req, res, next) {
+        try {
+            const card = await CardService.getCard(req.params.cardId);
+            if (!card) {
+                return next(new APIError(
+                    'Card not found', httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (card.user.toString() !== req.user.id.toString()) {
+                return next(new APIError(
+                    messages.unauthorized, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            await card.remove();
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }

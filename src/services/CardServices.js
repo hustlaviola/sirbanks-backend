@@ -19,6 +19,18 @@ import Helper from '../utils/helpers/Helper';
     }
 
     /**
+     * @method getCard
+     * @description
+     * @static
+     * @param {object} id
+     * @returns {object} JSON response
+     * @memberof CardService
+     */
+    static async getCard(id) {
+        return Card.findById(id);
+    }
+
+    /**
      * @method getAllDisplayableCards
      * @description
      * @static

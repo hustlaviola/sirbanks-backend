@@ -272,6 +272,14 @@ const validator = method => {
                 .isMongoId()
                 .withMessage('Please provide a valid adminId')
         ];
+    case 'cardId':
+        return [
+            param('cardId')
+                .exists()
+                .withMessage('cardId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid cardId')
+        ];
     case 'update_user':
         return [
             param('userId')

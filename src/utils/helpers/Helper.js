@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { v4 as uuid } from 'uuid';
 import path from 'path';
 import moment from 'moment';
 import validator from 'validator';
@@ -276,6 +277,17 @@ export default class Helper {
             token
         };
         return admin.messaging().send(message);
+    }
+
+    /**
+     * @method generateUniqueString
+     * @description
+     * @static
+     * @returns {boolean} Boolean response
+     * @memberof Helper
+     */
+    static generateUniqueString() {
+        return uuid();
     }
 
     // /**

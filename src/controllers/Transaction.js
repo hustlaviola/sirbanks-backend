@@ -17,6 +17,6 @@ import response from '../utils/response';
      * @memberof Transaction
      */
     static createTransaction(req, res) {
-        return response(res, httpStatus.OK, 'Transaction created successfully');
+        return response(res, httpStatus.OK, 'Transaction created successfully', { reference: req.reference });
     }
 }

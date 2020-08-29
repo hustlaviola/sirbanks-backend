@@ -1,8 +1,8 @@
 import twilio from 'twilio';
-import { v4 as uuid } from 'uuid';
 
 import Rider from '../models/Rider';
 import Driver from '../models/Driver';
+import Helper from '../utils/helpers/Helper';
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -62,8 +62,8 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
      * @memberof OnboardingService
      */
     static createUser(phone, role) {
-        const publicId = `PB-${uuid()}`;
-        const referenceId = `RF-${uuid()}`;
+        const publicId = `PB-${Helper.generateUniqueString()}`;
+        const referenceId = `RF-${Helper.generateUniqueString()}`;
         const user = {
             phone, publicId, referenceId
         };
