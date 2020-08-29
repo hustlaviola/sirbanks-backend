@@ -239,4 +239,49 @@ export default class AdminService {
         }));
         return makesDTO;
     }
+
+    /**
+     * @method getAdmins
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async getAdmins() {
+        const admins = await Admin.find();
+        const adminsDTO = admins.map(admin => ({
+            id: admin.id,
+            firstName: admin.firstName,
+            lastName: admin.lastName,
+            email: admin.email,
+            phone: admin.phone,
+            avatar: admin.avatar
+        }));
+        return adminsDTO;
+    }
+
+    /**
+     * @method getAdmin
+     * @description
+     * @static
+     * @param {object} id
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async getAdmin(id) {
+        const admin = await Admin.findById(id);
+        if (!admin) return null;
+        const adminDTO = {
+            id: admin.id,
+            firstName: admin.firstName,
+            lastName: admin.lastName,
+            email: admin.email,
+            phone: admin.phone,
+            avatar: admin.avatar,
+            permissions: admin.permissions,
+            lastLoggedInAt: admin.lastLoggedInAt,
+            joinedAt: admin.createdAt
+        };
+        return adminDTO;
+    }
 }

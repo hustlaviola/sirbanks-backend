@@ -10,6 +10,18 @@ import UserController from '../controllers/User';
 
 const router = express.Router();
 
+router.get('/',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateGetAdmins,
+    AdminController.getAdmins);
+
+router.get('/:adminId',
+    AuthValidator.userAuth,
+    validator('adminId'),
+    validate,
+    AdminMiddleware.validateGetAdmin,
+    AdminController.getAdmin);
+
 router.post('/onboarding',
     AuthValidator.userAuth,
     validator('user_onboarding'),

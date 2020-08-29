@@ -29,7 +29,7 @@ export default class Admin {
         const {
             email, firstName, lastName, phone
         } = req.body;
-        if (req.user.permissions < 3) {
+        if (!req.user.permissions || req.user.permissions < 3) {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -90,6 +90,8 @@ export default class Admin {
             }
             const { id, permissions } = admin;
             const token = await Helper.generateToken({ id, permissions });
+            admin.lastLoggedInAt = Date.now();
+            await admin.save();
             req.admin = {
                 id,
                 firstName: admin.firstName,
@@ -343,6 +345,54 @@ export default class Admin {
         try {
             const models = await AdminService.getModelsByMake(req.params.makeId);
             req.makeModels = models;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetAdmins
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetAdmins(req, res, next) {
+        if (!req.user.permissions || req.user.permissions < 3) {
+            return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
+        }
+        try {
+            const admins = await AdminService.getAdmins();
+            req.admins = admins;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateGetAdmin
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateGetAdmin(req, res, next) {
+        if (!req.user.permissions || req.user.permissions < 3) {
+            return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
+        }
+        try {
+            const admin = await AdminService.getAdmin(req.params.adminId);
+            req.admin = admin;
             return next();
         } catch (error) {
             log(error);

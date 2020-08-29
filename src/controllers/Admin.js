@@ -159,6 +159,34 @@ export default class AdminController {
         return response(res, httpStatus.OK, 'models retrieved successfully', { models: makeModels });
     }
 
+    /**
+     * @method getAdmins
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static getAdmins(req, res) {
+        const { admins } = req;
+        return response(res, httpStatus.OK, 'admins retrieved successfully', admins);
+    }
+
+    /**
+     * @method getAdmin
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static getAdmin(req, res) {
+        const { admin } = req;
+        return response(res, httpStatus.OK, 'admin retrieved successfully', admin);
+    }
+
     // /**
     //  * @method AddCars
     //  * @description
