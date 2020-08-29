@@ -363,6 +363,11 @@ export default class UserValidator {
                 ));
             }
             const expectedFileKeys = ['avatar', 'licence', 'insurance', 'vehiclePaper'];
+            if (!req.files) {
+                return next(new APIError(
+                    'Avatar, licence, insurance and vehiclePaper are required', httpStatus.BAD_REQUEST, true
+                ));
+            }
             const {
                 avatar, licence, insurance, vehiclePaper
             } = req.files;
