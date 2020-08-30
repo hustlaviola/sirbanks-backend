@@ -392,6 +392,10 @@ export default class UserValidator {
             //     ));
             // }
             const myFiles = [avatar, licence, insurance, vehiclePaper];
+            log(avatar);
+            log(licence);
+            log(insurance);
+            log(vehiclePaper);
             const errMessages = [];
             for (let i = 0; i < expectedFileKeys.length; i++) {
                 if (!files[expectedFileKeys[i]]
