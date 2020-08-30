@@ -32,6 +32,7 @@ export default class UserController {
             const payload = {
                 token,
                 reference: isAdmin ? dbUser.referenceId : undefined,
+                vehicleDetails: dbUser.vehicleDetails,
                 onboardingStatus: dbUser.onboardingStatus,
                 isEmailVerified: dbUser.isEmailVerified
             };
