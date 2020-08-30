@@ -9,7 +9,7 @@ import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
 import UserService from '../services/UserService';
 import Helper from '../utils/helpers/Helper';
-import CardService from '../services/CardServices';
+import CardService from '../services/CardService';
 
 const log = debug('app:onboarding-middleware');
 
@@ -80,6 +80,11 @@ export default class Payment {
                                     type: authorization.card_type,
                                     email: customer.email
                                 };
+                                const defaultCard = await CardService.getDefaultCard(user.id);
+                                if (defaultCard) {
+                                    defaultCard.default = false;
+                                    await defaultCard.save();
+                                }
                                 await CardService.addCard(card);
                                 await user.save();
                             }
@@ -145,50 +150,5 @@ export default class Payment {
             const response = JSON.parse(body);
             res.send(response);
         });
-    }
-
-    // /**
-    //  * @method getCards
-    //  * @description
-    //  * @static
-    //  * @param {object} req - Request object
-    //  * @param {object} res - Response object
-    //  * @param {object} next
-    //  * @returns {object} JSON response
-    //  * @memberof Payment
-    //  */
-    // static async getCards(req, res, next) {
-
-    // }
-
-    /**
-     * @method removeCard
-     * @description
-     * @static
-     * @param {object} req - Request object
-     * @param {object} res - Response object
-     * @param {object} next
-     * @returns {object} JSON response
-     * @memberof Payment
-     */
-    static async removeCard(req, res, next) {
-        try {
-            const card = await CardService.getCard(req.params.cardId);
-            if (!card) {
-                return next(new APIError(
-                    'Card not found', httpStatus.NOT_FOUND, true
-                ));
-            }
-            if (card.user.toString() !== req.user.id.toString()) {
-                return next(new APIError(
-                    messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                ));
-            }
-            await card.remove();
-            return next();
-        } catch (error) {
-            log(error);
-            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
-        }
     }
 }

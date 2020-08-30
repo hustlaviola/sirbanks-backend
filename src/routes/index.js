@@ -8,6 +8,7 @@ import adminRouter from './admin';
 import tripRouter from './trip';
 import transactionRouter from './transaction';
 import paymentRouter from './payment';
+import cardRouter from './card';
 import validator from '../utils/validationSchema';
 import validate from '../middlewares/validate';
 import AuthValidator from '../middlewares/Auth';
@@ -52,5 +53,6 @@ export {
     adminRouter,
     tripRouter,
     transactionRouter,
-    paymentRouter
+    paymentRouter,
+    cardRouter
 };

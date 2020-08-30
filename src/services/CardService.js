@@ -31,6 +31,18 @@ import Helper from '../utils/helpers/Helper';
     }
 
     /**
+     * @method getDefaultCard
+     * @description
+     * @static
+     * @param {object} user
+     * @returns {object} JSON response
+     * @memberof CardService
+     */
+    static async getDefaultCard(user) {
+        return Card.findOne({ user, default: true });
+    }
+
+    /**
      * @method getAllDisplayableCards
      * @description
      * @static

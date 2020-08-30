@@ -24,6 +24,10 @@ const CardSchema = new Schema({
     brand: {
         type: String
     },
+    default: {
+        type: Boolean,
+        default: true
+    },
     type: {
         type: String
     },

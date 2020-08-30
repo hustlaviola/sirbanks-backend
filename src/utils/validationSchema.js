@@ -371,7 +371,7 @@ const validator = method => {
             body('type')
                 .exists()
                 .withMessage('type is required')
-                .isIn(['fund_wallet', 'add_card', 'payment', 'payout'])
+                .isIn(['fund_wallet', 'add_card', 'payout'])
                 .withMessage('invalid type')
         ];
     // case 'get_users':
