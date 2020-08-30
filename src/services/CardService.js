@@ -51,7 +51,7 @@ import Helper from '../utils/helpers/Helper';
      * @memberof CardService
      */
     static async getAllDisplayableCards(user) {
-        let cards = Card.find({ user }).select(['id', 'brand', 'type', 'suffix']);
+        let cards = await Card.find({ user }).select(['id', 'brand', 'type', 'suffix']);
         cards = cards.map(card => ({
             id: card.id,
             brand: card.brand,
