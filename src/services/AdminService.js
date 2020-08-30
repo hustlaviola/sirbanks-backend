@@ -26,6 +26,18 @@ export default class AdminService {
     }
 
     /**
+     * @method findByPhone
+     * @description
+     * @static
+     * @param {object} phone
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async findByPhone(phone) {
+        return Admin.findOne({ phone });
+    }
+
+    /**
      * @method findById
      * @description
      * @static

@@ -37,9 +37,13 @@ export default class Admin {
             if (!manager) {
                 return next(new APIError('Manager not found', httpStatus.NOT_FOUND, true));
             }
-            const adminExists = await AdminService.findByEmail(email);
-            if (adminExists) {
+            const adminEmailExists = await AdminService.findByEmail(email);
+            if (adminEmailExists) {
                 return next(new APIError('email is already in use', httpStatus.CONFLICT, true));
+            }
+            const adminPhoneExists = await AdminService.findByPhone(email);
+            if (adminPhoneExists) {
+                return next(new APIError('phone is already in use', httpStatus.CONFLICT, true));
             }
             const password = await Helper.encryptPassword(req.body.password);
             const publicId = `PB-${uuid()}`;
