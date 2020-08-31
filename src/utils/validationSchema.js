@@ -355,9 +355,6 @@ const validator = method => {
                 .withMessage('email is required')
                 .isLength({ min: 5, max: 100 })
                 .withMessage('name must be between 5 and 100 characters inclusive'),
-            body('reference')
-                .exists()
-                .withMessage('reference is required'),
             body('email')
                 .exists()
                 .withMessage('email is required')
