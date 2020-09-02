@@ -34,6 +34,9 @@ export default class Payment {
     static async confirmPayment(req, res, next) {
         log('IP ADDRESS: ', req.ip);
         const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY).update(JSON.stringify(req.body)).digest('hex');
+        log('HASH', hash);
+        log('x-paystack-signature', req.headers['x-paystack-signature']);
+        log(hash === req.headers['x-paystack-signature']);
         if (hash !== req.headers['x-paystack-signature']) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
