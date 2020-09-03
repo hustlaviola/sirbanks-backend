@@ -39,6 +39,9 @@ export default class Payment {
         log('x-paystack-signature', req.headers['x-paystack-signature']);
         log(hash === req.headers['x-paystack-signature']);
         log(JSON.stringify(req.body));
+        if (req.body.event !== 'charge.success') {
+            // transaction.status = 'failed';
+        }
         const validIps = ['52.31.139.75', '52.49.173.169', '52.214.14.220'];
         if (!validIps.includes(ip)) {
             log('========= E NO EQUAL OOOOOOO ===========');
@@ -123,6 +126,7 @@ export default class Payment {
                     // TODO - Save transaction channel
                     log(`FUNDING WALLET USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
+                    transaction.channel = req.body.data.channel;
                     transaction.paidAt = new Date(data.paidAt);
                     user.walletBalance += (data.amount / 100);
                     await transaction.save();
@@ -136,7 +140,7 @@ export default class Payment {
                     user.walletBalance -= (data.amount / 100);
                     await transaction.save();
                     await user.save();
-                    log('PAYOUT SUCCESSFULL');
+                    log('PAYOUT SUCCESSFUL');
                 }
             }
         } catch (error) {
