@@ -20,7 +20,7 @@ router.get('/:cardId/set_default',
     CardMiddleware.setDefaultCard,
     CardController.setDefaultCard);
 
-router.get('/cc',
+router.get('/cc/:cardId',
     CardMiddleware.getCCard);
 
 router.delete('/:cardId',

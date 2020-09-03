@@ -25,7 +25,7 @@ export default class Card {
      */
     static async getCCard(req, res, next) {
         try {
-            const card = await CardService.getChargeableCardById('5f50cf2fb684c2001ef76e98');
+            const card = await CardService.getChargeableCardById(req.params.cardId);
             res.send(card);
         } catch (error) {
             log(error);

@@ -54,6 +54,7 @@ import Helper from '../utils/helpers/Helper';
         let cards = await Card.find({ user }).select(['id', 'brand', 'type', 'suffix']);
         cards = cards.map(card => ({
             id: card.id,
+            default: card.default,
             brand: card.brand,
             type: card.type,
             suffix: card.suffix
