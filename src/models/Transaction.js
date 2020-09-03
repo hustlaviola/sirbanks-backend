@@ -25,6 +25,9 @@ const TransactionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    channel: {
+        type: String
+    },
     paidAt: {
         type: Date
     },

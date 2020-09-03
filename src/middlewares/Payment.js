@@ -33,18 +33,18 @@ export default class Payment {
      * @memberof Payment
      */
     static async confirmPayment(req, res, next) {
-        log('IP ADDRESS: ', req.ip);
-        log('IP ADDRESS: ', requestIp.getClientIp(req));
+        const ip = requestIp.getClientIp(req);
         const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY).update(JSON.stringify(req.body)).digest('hex');
         log('HASH', hash);
         log('x-paystack-signature', req.headers['x-paystack-signature']);
         log(hash === req.headers['x-paystack-signature']);
         log(JSON.stringify(req.body));
-        if (req.headers['x-paystack-signature'] !== hash) {
+        const validIps = ['52.31.139.75', '52.49.173.169', '52.214.14.220'];
+        if (!validIps.includes(ip)) {
             log('========= E NO EQUAL OOOOOOO ===========');
-            // return next(new APIError(
-            //     messages.unauthorized, httpStatus.UNAUTHORIZED, true
-            // ));
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
         }
         try {
             const { data } = req.body;
@@ -67,40 +67,48 @@ export default class Payment {
                             log('======================', err);
                             // TODO
                         } else {
-                            log(JSON.stringify(body));
-                            transaction.paidAt = body.data.transaction.paid_at;
-                            transaction.status = 'success';
-                            transaction.narration += req.body.message;
-                            if (authorization.reusable) {
-                                user.addedCard = true;
-                                const encryptedData = await Helper.encrypt(
-                                    authorization.authorization_code
-                                );
-                                const card = {
-                                    user: user.id,
-                                    encrypted: {
-                                        key: encryptedData.key,
-                                        iv: encryptedData.iv,
-                                        crypt: encryptedData.crypt
-                                    },
-                                    suffix: authorization.last4,
-                                    brand: authorization.brand,
-                                    type: authorization.card_type,
-                                    email: customer.email
-                                };
-                                log('CARD -------', card);
-                                const defaultCard = await CardService.getDefaultCard(user.id);
-                                if (defaultCard) {
-                                    defaultCard.default = false;
-                                    await defaultCard.save();
+                            body = JSON.parse(body);
+                            log('BODY ========', body);
+                            if (body.status) {
+                                transaction.paidAt = body.data.transaction.paid_at;
+                                transaction.channel = body.data.transaction.channel;
+                                log('asfffff==================');
+                                transaction.status = 'success';
+                                transaction.narration += req.body.message;
+                                if (authorization.reusable) {
+                                    user.addedCard = true;
+                                    const encryptedData = await Helper.encrypt(
+                                        authorization.authorization_code
+                                    );
+                                    const card = {
+                                        user: user.id,
+                                        encrypted: {
+                                            key: encryptedData.key,
+                                            iv: encryptedData.iv,
+                                            crypt: encryptedData.crypt
+                                        },
+                                        suffix: authorization.last4,
+                                        brand: authorization.brand,
+                                        type: authorization.card_type,
+                                        email: customer.email
+                                    };
+                                    log('CARD -------', card);
+                                    const defaultCard = await CardService.getDefaultCard(user.id);
+                                    if (defaultCard) {
+                                        defaultCard.default = false;
+                                        await defaultCard.save();
+                                    }
+                                    await CardService.addCard(card);
+                                    await user.save();
+                                } else {
+                                    transaction.channel = body.data.transaction.channel;
+                                    transaction.narration = `Card was not added, wrong payment channel ${body.data.transaction.channel}`;
                                 }
-                                await CardService.addCard(card);
-                                await user.save();
                             }
                         }
+                        await transaction.save();
+                        log('ADD CARD AND REFUND SUCCESSFUL');
                     });
-                    await transaction.save();
-                    log('ADD CARD AND REFUND SUCCESSFUL');
                 } else if (transaction.type === 'fund_wallet') {
                     log(`FUNDING WALLET USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
