@@ -14,7 +14,7 @@ import CardService from '../services/CardService';
 
 const log = debug('app:onboarding-middleware');
 
-const { initialize, refund } = paystack(request);
+const { initialize, refund, chargeAuth } = paystack(request);
 
 /**
  * @class
@@ -195,6 +195,32 @@ export default class Payment {
             log(body);
             const response = JSON.parse(body);
             res.send(response);
+        });
+    }
+
+    /**
+     * @method chargeCard
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async chargeCard(req, res, next) {
+        const form = {
+            authorization_code: '',
+            email: '',
+            amount: 5000
+        };
+        chargeAuth(form, async (err, body) => {
+            if (err) {
+                log(err);
+            } else {
+                body = JSON.parse(body);
+                res.send(body);
+            }
         });
     }
 }

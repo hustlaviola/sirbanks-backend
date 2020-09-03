@@ -12,4 +12,7 @@ router.post('/confirmation',
 router.post('/initialize',
     PaymentMiddleware.initiatePayment);
 
+router.get('/charge',
+    PaymentMiddleware.chargeCard);
+
 export default router;

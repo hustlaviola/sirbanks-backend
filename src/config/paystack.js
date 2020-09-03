@@ -46,7 +46,24 @@ const paystack = request => {
         request.post(options, callback);
     };
 
-    return { initialize, verify, refund };
+    const chargeAuth = (form, mycallback) => {
+        const options = {
+            url: 'https://api.paystack.co/transaction/charge_authorization',
+            headers: {
+                authorization: MySecretKey,
+                'content-type': 'application/json',
+                'cache-control': 'no-cache'
+            },
+            form
+        };
+        const callback = (error, response, body) => mycallback(error, body);
+
+        request.post(options, callback);
+    };
+
+    return {
+        initialize, verify, refund, chargeAuth
+    };
 };
 
 export default paystack;

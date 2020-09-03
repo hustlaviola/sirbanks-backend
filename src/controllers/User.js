@@ -170,4 +170,18 @@ export default class UserController {
         const { avatar } = req;
         return response(res, httpStatus.OK, 'avatar retrieved successfully', { avatar });
     }
+
+    /**
+     * @method getWalletBalance
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static getWalletBalance(req, res) {
+        const { walletBalance } = req;
+        return response(res, httpStatus.OK, 'walletBalance retrieved successfully', { walletBalance });
+    }
 }

@@ -27,6 +27,11 @@ router.get('/avatar',
     UserValidator.validateGetAvatar,
     UserController.getAvatar);
 
+router.get('/wallet_balance',
+    AuthValidator.userAuth,
+    UserValidator.validateGetWalletBalance,
+    UserController.getWalletBalance);
+
 router.patch('/upload_avatar',
     AuthValidator.userAuth,
     validator('avatar'),

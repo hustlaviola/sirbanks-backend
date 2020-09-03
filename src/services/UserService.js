@@ -213,4 +213,20 @@ export default class UserService {
         }
         return Driver.findById(id).select('avatar');
     }
+
+    /**
+     * @method getWalletBalance
+     * @description
+     * @static
+     * @param {string} id - User id
+     * @param {boolean} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static getWalletBalance(id, role) {
+        if (role === 'rider') {
+            return Rider.findById(id).select('walletBalance');
+        }
+        return Driver.findById(id).select('walletBalance');
+    }
 }

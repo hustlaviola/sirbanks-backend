@@ -793,4 +793,30 @@ export default class UserValidator {
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
+
+    /**
+     * @method validateGetWalletBalance
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof User
+     */
+    static async validateGetWalletBalance(req, res, next) {
+        try {
+            const user = await UserService.getWalletBalance(req.user.id, req.user.role);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            req.walletBalance = user.walletBalance;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 }
