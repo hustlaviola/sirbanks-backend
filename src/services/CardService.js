@@ -110,4 +110,16 @@ import Helper from '../utils/helpers/Helper';
         const authCode = Helper.decrypt(encrypted);
         return { authCode, email };
     }
+
+    /**
+     * @method removeCard
+     * @description
+     * @static
+     * @param {object} id
+     * @returns {object} JSON response
+     * @memberof CardService
+     */
+    static removeCard(id) {
+        return Card.findByIdAndDelete(id);
+    }
 }

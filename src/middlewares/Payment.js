@@ -93,6 +93,16 @@ export default class Payment {
                                         email: customer.email
                                     };
                                     log('CARD -------', card);
+                                    let conflictCard;
+                                    const cards = await CardService.getAllDisplayableCards(user.id);
+                                    cards.forEach(dbCard => {
+                                        if (dbCard.suffix === card.suffix && dbCard.type === card.type) {
+                                            conflictCard = dbCard.id;
+                                        }
+                                    });
+                                    if (conflictCard) {
+                                        await CardService.removeCard(conflictCard);
+                                    }
                                     const defaultCard = await CardService.getDefaultCard(user.id);
                                     if (defaultCard) {
                                         defaultCard.default = false;
