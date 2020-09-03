@@ -69,7 +69,7 @@ export default class Helper {
         const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
         let encrypted = cipher.update(text);
         encrypted = Buffer.concat([encrypted, cipher.final()]);
-        return { iv: iv.toString('hex'), key, crypt: encrypted.toString('hex') };
+        return { iv: iv.toString('hex'), key: key.toString('hex'), crypt: encrypted.toString('hex') };
     }
 
     /**
@@ -82,8 +82,9 @@ export default class Helper {
      */
     static async decrypt(crypted) {
         const cryptedIv = Buffer.from(crypted.iv, 'hex');
+        const cryptedKey = Buffer.from(crypted.key, 'hex');
         const encryptedText = Buffer.from(crypted.crypt, 'hex');
-        const decipher = crypto.createDecipheriv(algorithm, Buffer.from(crypted.key), cryptedIv);
+        const decipher = crypto.createDecipheriv(algorithm, cryptedKey, cryptedIv);
         let decrypted = decipher.update(encryptedText);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted.toString();

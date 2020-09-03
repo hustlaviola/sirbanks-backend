@@ -14,6 +14,26 @@ const log = debug('app:onboarding-middleware');
  */
 export default class Card {
     /**
+     * @method getCCard
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Card
+     */
+    static async getCCard(req, res, next) {
+        try {
+            const card = await CardService.getChargeableCardById('5f50cf2fb684c2001ef76e98');
+            res.send(card);
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
      * @method getCards
      * @description
      * @static

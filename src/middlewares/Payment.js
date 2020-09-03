@@ -110,6 +110,7 @@ export default class Payment {
                         log('ADD CARD AND REFUND SUCCESSFUL');
                     });
                 } else if (transaction.type === 'fund_wallet') {
+                    // TODO - Save transaction channel
                     log(`FUNDING WALLET USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
                     transaction.paidAt = new Date(data.paidAt);
@@ -118,6 +119,7 @@ export default class Payment {
                     await user.save();
                     log('FUNDING WALLET SUCCESSFUL');
                 } else {
+                    // TODO - Save transaction channel
                     log(`PAYING OUT USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
                     transaction.paidAt = new Date(data.paidAt);

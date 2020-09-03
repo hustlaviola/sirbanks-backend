@@ -20,6 +20,9 @@ router.get('/:cardId/set_default',
     CardMiddleware.setDefaultCard,
     CardController.setDefaultCard);
 
+router.get('/cc',
+    CardMiddleware.getCCard);
+
 router.delete('/:cardId',
     AuthValidator.userAuth,
     validator('cardId'),
