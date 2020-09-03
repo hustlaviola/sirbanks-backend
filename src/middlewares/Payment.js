@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import request from 'request';
 import crypto from 'crypto';
+import requestIp from 'request-ip';
 
 import paystack from '../config/paystack';
 import TransactionService from '../services/TransactionService';
@@ -33,15 +34,17 @@ export default class Payment {
      */
     static async confirmPayment(req, res, next) {
         log('IP ADDRESS: ', req.ip);
+        log('IP ADDRESS: ', requestIp.getClientIp(req));
         const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY).update(JSON.stringify(req.body)).digest('hex');
         log('HASH', hash);
         log('x-paystack-signature', req.headers['x-paystack-signature']);
         log(hash === req.headers['x-paystack-signature']);
         log(JSON.stringify(req.body));
-        if (req.headers['x-paystack-signature'] !== 'b888b61262d13929602ba4450378920679556a2eac1a6c06ef7259b5ecbf3165482a222fe4cff306db47625d1cfb560b05409bbea7821556dc891adedd04dc3a') {
-            return next(new APIError(
-                messages.unauthorized, httpStatus.UNAUTHORIZED, true
-            ));
+        if (req.headers['x-paystack-signature'] !== hash) {
+            log('========= E NO EQUAL OOOOOOO ===========');
+            // return next(new APIError(
+            //     messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            // ));
         }
         try {
             const { data } = req.body;
@@ -57,13 +60,14 @@ export default class Payment {
                     log('USER NOT FOUND');
                     // TODO
                 } else if (transaction.type === 'add_card') {
-                    log(`ADDING CARD USER: ${user}, REF: ${reference}`);
+                    log(`ADDING CARD USER: ${user.id}, REF: ${reference}`);
                     const form = { transaction: reference };
                     refund(form, async (err, body) => {
                         if (err) {
-                            log(err);
+                            log('======================', err);
                             // TODO
                         } else {
+                            log(JSON.stringify(body));
                             transaction.paidAt = body.data.transaction.paid_at;
                             transaction.status = 'success';
                             transaction.narration += req.body.message;
@@ -84,6 +88,7 @@ export default class Payment {
                                     type: authorization.card_type,
                                     email: customer.email
                                 };
+                                log('CARD -------', card);
                                 const defaultCard = await CardService.getDefaultCard(user.id);
                                 if (defaultCard) {
                                     defaultCard.default = false;
