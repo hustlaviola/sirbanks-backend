@@ -21,7 +21,28 @@ const CardSchema = new Schema({
             required: true
         }
     },
+    signature: {
+        type: String
+    },
     brand: {
+        type: String
+    },
+    bin: {
+        type: String
+    },
+    bank: {
+        type: String
+    },
+    accountName: {
+        type: String
+    },
+    countryCode: {
+        type: String
+    },
+    expMonth: {
+        type: String
+    },
+    expYear: {
         type: String
     },
     default: {

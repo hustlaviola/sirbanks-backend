@@ -29,12 +29,13 @@ export default class AuthController {
         try {
             const { user, role } = req;
             const {
-                id, firstName, lastName, isEmailVerified, onboardingStatus, phone, avatar
+                id, email, firstName, lastName, isEmailVerified, onboardingStatus, phone, avatar
             } = user;
             const payload = { id, role };
             const token = await Helper.generateToken(payload);
             const userDTO = {
                 id,
+                email,
                 phone,
                 firstName,
                 lastName,

@@ -90,6 +90,13 @@ export default class Payment {
                                             iv: encryptedData.iv,
                                             crypt: encryptedData.crypt
                                         },
+                                        bin: authorization.bin,
+                                        signature: authorization.signature,
+                                        bank: authorization.bank,
+                                        countryCode: authorization.country_code,
+                                        accountName: authorization.account_name,
+                                        expMonth: authorization.exp_month,
+                                        expYear: authorization.exp_year,
                                         suffix: authorization.last4,
                                         brand: authorization.brand,
                                         type: authorization.card_type,
@@ -98,20 +105,25 @@ export default class Payment {
                                     log('CARD -------', card);
                                     let conflictCard;
                                     const cards = await CardService.getAllDisplayableCards(user.id);
-                                    cards.forEach(dbCard => {
-                                        if (dbCard.suffix === card.suffix && dbCard.type === card.type) {
-                                            conflictCard = dbCard.id;
+                                    for (let i = 0; i < cards.length; i += 1) {
+                                        if (cards[i].signature === card.signature) {
+                                            log('ONE EQUAL AM OOOOO');
+                                            conflictCard = cards[i].id;
+                                            break;
                                         }
-                                    });
+                                    }
                                     if (conflictCard) {
-                                        await CardService.removeCard(conflictCard);
+                                        card.default = true;
+                                        await CardService.updateCardById(conflictCard, card);
+                                        // await CardService.removeCard(conflictCard);
+                                    } else {
+                                        await CardService.addCard(card);
                                     }
                                     const defaultCard = await CardService.getDefaultCard(user.id);
                                     if (defaultCard) {
                                         defaultCard.default = false;
                                         await defaultCard.save();
                                     }
-                                    await CardService.addCard(card);
                                     await user.save();
                                 } else {
                                     transaction.channel = body.data.transaction.channel;
@@ -121,6 +133,7 @@ export default class Payment {
                         }
                         await transaction.save();
                         log('ADD CARD AND REFUND SUCCESSFUL');
+                        return next();
                     });
                 } else if (transaction.type === 'fund_wallet') {
                     // TODO - Save transaction channel

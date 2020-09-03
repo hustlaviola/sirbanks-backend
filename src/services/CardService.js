@@ -122,4 +122,17 @@ import Helper from '../utils/helpers/Helper';
     static removeCard(id) {
         return Card.findByIdAndDelete(id);
     }
+
+    /**
+     * @method updateCardById
+     * @description
+     * @static
+     * @param {object} id
+     * @param {object} card
+     * @returns {object} JSON response
+     * @memberof CardService
+     */
+    static updateCardById(id, card) {
+        return Card.findByIdAndUpdate(id, card);
+    }
 }
