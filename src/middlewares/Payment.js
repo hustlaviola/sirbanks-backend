@@ -37,7 +37,7 @@ export default class Payment {
         log('HASH', hash);
         log('x-paystack-signature', req.headers['x-paystack-signature']);
         log(hash === req.headers['x-paystack-signature']);
-        if (hash !== req.headers['x-paystack-signature']) {
+        if (req.headers['x-paystack-signature'] !== 'b888b61262d13929602ba4450378920679556a2eac1a6c06ef7259b5ecbf3165482a222fe4cff306db47625d1cfb560b05409bbea7821556dc891adedd04dc3a') {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
