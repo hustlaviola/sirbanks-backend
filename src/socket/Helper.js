@@ -122,8 +122,8 @@ export default class Helper {
      */
     static async dispatch(data, drivers, quantum) {
         const {
-            id, pickUp, dropOff, paymentMethod, pickUpLon, pickUpLat,
-            dropOffLon, dropOffLat, riderName
+            id, pickUp, dropOff, pickUpLon, pickUpLat,
+            dropOffLon, dropOffLat, riderName, payment
         } = data;
         if (!drivers.length) {
             return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
@@ -159,7 +159,7 @@ export default class Helper {
             dropOff,
             dropOffLon,
             dropOffLat,
-            paymentMethod
+            payment
         };
         log('tripRequest ========================', tripRequest);
         reqStatus[tripRequest.tripId] = {
@@ -167,6 +167,7 @@ export default class Helper {
             drivers
         };
         allTripRequests[tripRequest.tripId] = tripRequest;
+        delete tripRequest.payment;
         log('driver id =======', driver._id);
         if (clients[driver._id]) {
             clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));

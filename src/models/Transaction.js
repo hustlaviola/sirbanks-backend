@@ -11,7 +11,7 @@ const TransactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['fund_wallet', 'add_card', 'payout']
+        enum: ['fund_wallet', 'add_card', 'payout', 'payment']
     },
     status: {
         type: String,

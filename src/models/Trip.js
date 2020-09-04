@@ -46,9 +46,15 @@ const TripSchema = new mongoose.Schema({
     endTime: {
         type: Date
     },
-    paymentMethod: {
-        type: String,
-        enum: ['cash', 'card', 'wallet']
+    payment: {
+        method: {
+            type: String,
+            enum: ['cash', 'card', 'wallet']
+        },
+        cardId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'card'
+        }
     },
     distance: {
         type: Number

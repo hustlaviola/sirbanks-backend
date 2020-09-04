@@ -35,7 +35,7 @@ export default class Transaction {
         // }
         const { id } = req.user;
         const transaction = {
-            amount: amount / 100,
+            amount,
             user: id,
             reference,
             narration: `${type} for ${name}, email: ${email}`,

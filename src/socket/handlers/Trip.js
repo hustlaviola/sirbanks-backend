@@ -2,6 +2,9 @@
 /* eslint-disable import/no-cycle */
 import validator from 'validator';
 import fetch from 'node-fetch';
+import request from 'request';
+
+import paystack from '../../config/paystack';
 // import { getDistance } from 'geolib';
 import {
     ERROR,
@@ -28,6 +31,9 @@ import {
 } from '../index';
 import TransactionService from '../../services/TransactionService';
 import { debug } from '../../config/logger';
+import CardService from '../../services/CardService';
+
+const { chargeAuth } = paystack(request);
 
 const log = debug('app:socket:trip');
 
@@ -191,20 +197,14 @@ export default class TripHandler {
                     Helper.emitByID(
                         trip.riderId, DRIVER_LOCATION_UPDATED, JSON.stringify(driverDetails)
                     );
-                    if (currentTripStatus === 'accepted') {
-                        if (distanceValue <= 200) {
+                    if (currentTripStatus === 'accepted' && distanceValue <= 100) {
+                        if (distanceValue <= 100) {
                             await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVED', 'Driver has reached your location');
                             await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVED', 'You are at the rider\'s location');
-                        } else if (distanceValue <= 600) {
-                            await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVING', 'Driver is around the corner');
-                            await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVING', 'You are almost at the rider\'s location');
                         }
-                    } else if (distanceValue <= 200) {
+                    } else if (distanceValue <= 100) {
                         await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVED', 'You have reached your destination');
                         await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVED', 'You have reached the destination');
-                    } else if (distanceValue <= 600) {
-                        await HelperUtil.sendPNToDevice(riderDeviceId, 'ARRIVING', 'You are almost there');
-                        await HelperUtil.sendPNToDevice(driverDeviceId, 'ARRIVING', 'You are almost at the rider\'s destination');
                     }
                 }
                 await driver.save();
@@ -358,7 +358,7 @@ export default class TripHandler {
     static async requestRide(socket, data) {
         try {
             const {
-                id, pickUpLat, pickUpLon, dropOffLat, dropOffLon
+                id, pickUpLat, pickUpLon, dropOffLat, dropOffLon, payment
             } = data;
             log(`request ride ============= id: ${id}, pickUpLon: ${pickUpLon}, pickUpLat: ${pickUpLat}, dropOffLon: ${dropOffLon}, dropOffLat ${dropOffLat}`);
             if (!validator.isMongoId(id)) {
@@ -374,11 +374,22 @@ export default class TripHandler {
             if (!validator.isLatLong(`${dropOffLat}, ${dropOffLon}`)) {
                 return socket.emit(ERROR, 'Invalid dropOff coordinates(lat/lon)');
             }
-            let { pickUp, dropOff, paymentMethod } = data;
-            paymentMethod = paymentMethod.toLowerCase();
+            let { pickUp, dropOff } = data;
+            if (!payment || !payment.method) {
+                return socket.emit(ERROR, 'payment method is required');
+            }
+            const paymentMethod = payment.method.toLowerCase();
             const validPaymentMethods = ['cash', 'card', 'wallet'];
             if (!validPaymentMethods.includes(paymentMethod)) {
                 return socket.emit(ERROR, 'Invalid paymentMethod');
+            }
+            if (paymentMethod === 'card') {
+                if (!payment.cardId) {
+                    return socket.emit(ERROR, 'cardId is required for this payment method');
+                }
+                if (!validator.isMongoId(payment.cardId)) {
+                    return socket.emit(ERROR, 'Invalid cardId');
+                }
             }
             if (!pickUp || !dropOff) {
                 return socket.emit(ERROR, 'pickUp/dropOff is required');
@@ -480,7 +491,7 @@ export default class TripHandler {
                 return socket.emit(ERROR, 'Invalid driver coordinates(lat/lon)');
             }
             const {
-                riderId, pickUp, dropOff, paymentMethod, pickUpLon,
+                riderId, pickUp, dropOff, payment, pickUpLon,
                 pickUpLat, dropOffLon, dropOffLat, distanceToRider, durationToRider
             } = allTripRequests[tripId];
             clearInterval(pendingRequests[tripId]);
@@ -496,7 +507,7 @@ export default class TripHandler {
                 dropOff,
                 dropOffLocation,
                 status: 'accepted',
-                paymentMethod
+                payment
             };
             const driver = await Driver.findById(id);
             const rider = await Rider.findById(riderId);
@@ -563,7 +574,7 @@ export default class TripHandler {
                 estimatedFare: estimatedFare || null,
                 distanceToRider,
                 durationToRider,
-                paymentMethod: trip.paymentMethod,
+                paymentMethod: trip.payment.method,
                 driverDetails
             };
             const newDriverTrip = {
@@ -580,8 +591,7 @@ export default class TripHandler {
                 duration: duration ? duration.text : null,
                 estimatedFare: estimatedFare || null,
                 distanceToRider,
-                durationToRider,
-                paymentMethod: trip.paymentMethod
+                durationToRider
             };
             await driver.save();
             await rider.save();
@@ -946,7 +956,27 @@ export default class TripHandler {
                 transactionType: 'credit',
                 narration: 'Income for trip taken'
             };
-            if (trip.paymentMethod === 'wallet') rider.balance -= total;
+            if (trip.payment.method === 'wallet') rider.balance -= total;
+            else if (trip.payment.method === 'card') {
+                const card = await CardService.getChargeableCardById(trip.payment.cardId);
+                if (!card) {
+                    // TODO: Log settlement issue
+                }
+                const form = {
+                    authorization_code: card.authCode,
+                    email: card.email,
+                    amount: total
+                };
+                chargeAuth(form, async (err, body) => {
+                    if (err) {
+                        log(err);
+                        // TODO: Log settlement issue
+                    } else {
+                        log(body);
+                        // TODO: Save transaction
+                    }
+                });
+            }
             // TODO Payment
             await rider.save();
             driver.balance += driverIncome;

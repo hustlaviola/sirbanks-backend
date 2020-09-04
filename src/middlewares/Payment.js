@@ -52,6 +52,12 @@ export default class Payment {
         try {
             const { data } = req.body;
             const { authorization, customer, reference } = data;
+            if (!Helper.isValidKey(reference, 'TX-')) {
+                log(data);
+                log(JSON.stringify(data));
+                // TODO: save transaction
+                return;
+            }
             const transaction = await TransactionService.getTransactionByRef(reference);
             if (!transaction) {
                 log('TRANSACTION NOT FOUND');
@@ -208,7 +214,7 @@ export default class Payment {
      * @returns {object} JSON response
      * @memberof Payment
      */
-    static async chargeCard(req, res, next) {
+    static async chargeCard(req, res) {
         const form = {
             authorization_code: '',
             email: '',
