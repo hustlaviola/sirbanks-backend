@@ -81,7 +81,6 @@ export default class Payment {
                             if (body.status) {
                                 transaction.paidAt = body.data.transaction.paid_at;
                                 transaction.channel = body.data.transaction.channel;
-                                log('asfffff==================');
                                 transaction.status = 'success';
                                 transaction.narration += req.body.message;
                                 if (authorization.reusable) {
@@ -137,6 +136,7 @@ export default class Payment {
                                 }
                             }
                         }
+                        transaction.updatedAt = Date.now();
                         await transaction.save();
                         log('ADD CARD AND REFUND SUCCESSFUL');
                         return next();
@@ -147,15 +147,17 @@ export default class Payment {
                     transaction.status = 'success';
                     transaction.channel = req.body.data.channel;
                     transaction.paidAt = new Date(data.paidAt);
+                    transaction.updatedAt = Date.now();
                     user.walletBalance += (data.amount / 100);
                     await transaction.save();
                     await user.save();
                     log('FUNDING WALLET SUCCESSFUL');
-                } else {
+                } else if (transaction.type === 'payout') {
                     // TODO - Save transaction channel
                     log(`PAYING OUT USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
                     transaction.paidAt = new Date(data.paidAt);
+                    transaction.updatedAt = Date.now();
                     user.walletBalance -= (data.amount / 100);
                     await transaction.save();
                     await user.save();

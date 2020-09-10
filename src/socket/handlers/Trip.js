@@ -871,7 +871,7 @@ export default class TripHandler {
     static async endTrip(socket, data) {
         try {
             const {
-                id, tripId, distance, dropOffLat, dropOffLon
+                id, tripId, dropOffLat, dropOffLon
             } = data;
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
@@ -882,9 +882,6 @@ export default class TripHandler {
             }
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
-            }
-            if (typeof distance !== 'number') {
-                return socket.emit(ERROR, 'Invalid distance');
             }
             let { dropOff } = data;
             dropOff = validator.escape(dropOff.trim().replace(/  +/g, ' '));
@@ -899,7 +896,7 @@ export default class TripHandler {
             const driver = values[1];
 
             if (!trip) {
-                return Helper.emitById(id, ERROR, 'The trip you tried to cancel was not found');
+                return Helper.emitById(id, ERROR, 'The trip you tried to end was not found');
             }
             if (!rider) {
                 return Helper.emitById(id, ERROR, 'Rider not found');
@@ -919,7 +916,21 @@ export default class TripHandler {
             const duration = Math.round((endTime - startTime) / 60000);
             log(duration);
             const durationCost = duration * 10;
-            const distanceCost = (distance / 1000) * 50;
+            let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${trip.pickUpLocation[1]},${trip.pickUpLocation[0]}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
+            tripResult = await tripResult.json();
+            log('TRIP RESULT', tripResult);
+            let distance = 0;
+            let distanceCost = 0;
+            if (tripResult.status === 'OK') {
+                const tripResponse = tripResult.rows[0].elements[0];
+                const tripDurationDistance = await Helper.getDurationAndDistance(tripResponse);
+                distance = tripDurationDistance.distanceVal;
+                distanceCost = (distance / 1000) * 50;
+                log('DISTANCE VAL ==== ', distance);
+                log('DISTANCE TEXT ==== ', tripDurationDistance.distance);
+                log('APP DURATION', duration);
+                log('GOOGLE DURATION', tripDurationDistance.duration);
+            }
             const total = baseFare + durationCost + distanceCost;
 
             const tripInfo = {
@@ -930,6 +941,8 @@ export default class TripHandler {
                 distanceCost,
                 total
             };
+
+            log('TRIP INFO ====', tripInfo);
 
             trip.status = 'ended';
             trip.endTime = endTime;
