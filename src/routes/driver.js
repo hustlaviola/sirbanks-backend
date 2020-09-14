@@ -28,7 +28,7 @@ router.put('/onboarding/complete',
     AuthValidator.userAuth,
     validator('complete_onboarding'),
     validate,
-    UserValidator.validateFileUploads,
+    UserValidator.validateFiles,
     UserController.upLoadDriverFiles);
 
 export default router;
