@@ -26,8 +26,6 @@ router.put('/onboarding/vehicle_details',
 
 router.put('/onboarding/complete',
     AuthValidator.userAuth,
-    validator('complete_onboarding'),
-    validate,
     UserValidator.validateFiles,
     UserController.upLoadDriverFiles);
 
