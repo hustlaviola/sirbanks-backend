@@ -306,6 +306,7 @@ export default class TripHandler {
                     }
                 }
             ]);
+            log(drivers);
             // if (!drivers.length) {
             //     return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             // }
