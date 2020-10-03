@@ -280,6 +280,14 @@ const validator = method => {
                 .isMongoId()
                 .withMessage('Please provide a valid cardId')
         ];
+    case 'driverId':
+        return [
+            param('driverId')
+                .exists()
+                .withMessage('driverId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid driverId')
+        ];
     case 'update_user':
         return [
             param('userId')

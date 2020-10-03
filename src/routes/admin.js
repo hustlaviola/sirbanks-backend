@@ -60,6 +60,13 @@ router.get('/:adminId',
     AdminMiddleware.validateGetAdmin,
     AdminController.getAdmin);
 
+router.get('/drivers/:driverId/approve',
+    AuthValidator.userAuth,
+    validator('driverId'),
+    validate,
+    AdminMiddleware.validateDriverApproval,
+    AdminController.approveDriver);
+
 router.post('/onboarding',
     AuthValidator.userAuth,
     validator('user_onboarding'),

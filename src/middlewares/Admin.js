@@ -266,7 +266,7 @@ export default class Admin {
     // }
 
     /**
-     * @method validateAddUsers
+     * @method validateAddUser
      * @description
      * @static
      * @param {object} req - Request object
@@ -281,10 +281,10 @@ export default class Admin {
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
         }
+        const {
+            phone, firstName, lastName, email
+        } = req.body;
         try {
-            const {
-                phone, firstName, lastName, email
-            } = req.body;
             let user = await UserService.findByPhone(phone);
             if (user) {
                 return next(new APIError(messages.phoneInUse, httpStatus.CONFLICT, true));
@@ -397,6 +397,47 @@ export default class Admin {
         try {
             const admin = await AdminService.getAdmin(req.params.adminId);
             req.admin = admin;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateDriverApproval
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateDriverApproval(req, res, next) {
+        if (!req.user.permissions) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        const { driverId } = req.params;
+        try {
+            const user = await UserService.findByIdAndRole(driverId, 'driver');
+            if (!user) {
+                return next(new APIError(messages.userNotFound, httpStatus.NOT_FOUND, true));
+            }
+            if (user.isApproved) {
+                return next(new APIError('Driver already approved', httpStatus.CONFLICT, true));
+            }
+            if (user.onboardingStatus !== 'completed') {
+                return next(new APIError(
+                    'Driver needs to complete onboarding process before approval',
+                    httpStatus.BAD_REQUEST,
+                    true
+                ));
+            }
+            user.isApproved = true;
+            await user.save();
             return next();
         } catch (error) {
             log(error);

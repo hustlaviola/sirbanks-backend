@@ -187,6 +187,19 @@ export default class AdminController {
         return response(res, httpStatus.OK, 'admin retrieved successfully', admin);
     }
 
+    /**
+     * @method approveDriver
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static approveDriver(req, res) {
+        return response(res, httpStatus.OK, 'driver approved successfully');
+    }
+
     // /**
     //  * @method AddCars
     //  * @description

@@ -93,7 +93,13 @@ export default class AuthController {
             user.isEmailVerified = true;
             await token.remove();
             await user.save();
-            return res.render('verify');
+            return res.render(
+                'success',
+                {
+                    type: 'Email Verification',
+                    message: 'Email verified successfully'
+                }
+            );
             // return response(res, httpStatus.OK, messages.emailVerified);
         } catch (error) {
             log(error);
@@ -138,7 +144,13 @@ export default class AuthController {
             user.password = await Helper.encryptPassword(password);
             await token.remove();
             await user.save();
-            return response(res, httpStatus.OK, messages.passwordUpdateSuccess);
+            return res.render(
+                'success',
+                {
+                    type: 'Password Reset',
+                    message: 'Password Reset successful'
+                }
+            );
         } catch (error) {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));

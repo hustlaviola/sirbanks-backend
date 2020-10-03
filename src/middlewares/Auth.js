@@ -244,20 +244,32 @@ export default class Auth {
         try {
             const token = await AuthService.findByToken(req.params.token, linkType);
             if (!token) {
-                return next(new APIError(
-                    messages.noVerificationToken, httpStatus.NOT_FOUND, true
-                ));
+                return res.render(
+                    'error',
+                    {
+                        type: linkType === 'email' ? 'Email Verification' : 'Password Reset',
+                        message: messages.noVerificationToken
+                    }
+                );
             }
             const user = await UserService.findById(token.userId);
             if (!user) {
-                return next(new APIError(
-                    messages.userNotFound, httpStatus.NOT_FOUND, true
-                ));
+                return res.render(
+                    'error',
+                    {
+                        type: linkType === 'email' ? 'Email Verification' : 'Password Reset',
+                        message: messages.userNotFound
+                    }
+                );
             }
             if (linkType === 'email' && user.isEmailVerified) {
-                return next(new APIError(
-                    messages.alreadyVerified, httpStatus.CONFLICT, true
-                ));
+                return res.render(
+                    'error',
+                    {
+                        type: 'Email Verification',
+                        message: messages.alreadyVerified
+                    }
+                );
             }
             req.user = user;
             req.token = token;
