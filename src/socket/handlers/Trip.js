@@ -361,6 +361,8 @@ export default class TripHandler {
             const {
                 id, pickUpLat, pickUpLon, dropOffLat, dropOffLon, payment
             } = data;
+            log('DATA ===========', data);
+            log('DATA ========', JSON.stringify(data));
             log(`request ride ============= id: ${id}, pickUpLon: ${pickUpLon}, pickUpLat: ${pickUpLat}, dropOffLon: ${dropOffLon}, dropOffLat ${dropOffLat}`);
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
