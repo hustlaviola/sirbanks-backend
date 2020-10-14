@@ -32,10 +32,10 @@ export default class Trip {
                     messages.tripNotFound, httpStatus.NOT_FOUND, true
                 ));
             }
-            const { id, permissions } = req.user;
+            const { id, role } = req.user;
             const isAllowed = (trip.riderId.toString() === id.toString()
                 || trip.driverId.toString() === id.toString());
-            if (!permissions) {
+            if (!role.includes(['admin', 'super admin'])) {
                 if (!isAllowed) {
                     return next(new APIError(
                         messages.unauthorized, httpStatus.UNAUTHORIZED, true
@@ -61,7 +61,7 @@ export default class Trip {
      * @memberof Trip
      */
     static async validateTripsCount(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -119,7 +119,7 @@ export default class Trip {
     //  * @memberof Trip
     //  */
     // static async validateCurrentTripsCount(req, res, next) {
-    //     if (!req.user.permissions) {
+    //     if (!req.user.role.includes(['admin', 'super admin'])) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -145,7 +145,7 @@ export default class Trip {
     //  * @memberof Trip
     //  */
     // static async validateTripsCountByDate(req, res, next) {
-    //     if (!req.user.permissions) {
+    //     if (!req.user.role.includes(['admin', 'super admin'])) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -192,7 +192,7 @@ export default class Trip {
      * @memberof Trip
      */
     static async validateGetTrips(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));

@@ -188,7 +188,7 @@ export default class AdminController {
     }
 
     /**
-     * @method approveDriver
+     * @method activateDriver
      * @description
      * @static
      * @param {object} req - Request object
@@ -196,8 +196,34 @@ export default class AdminController {
      * @returns {object} JSON response
      * @memberof Admin
      */
-    static approveDriver(req, res) {
-        return response(res, httpStatus.OK, 'driver approved successfully');
+    static activateDriver(req, res) {
+        return response(res, httpStatus.OK, 'driver activated successfully');
+    }
+
+    /**
+     * @method deactivateDriver
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static deactivateDriver(req, res) {
+        return response(res, httpStatus.OK, 'driver deactivated successfully');
+    }
+
+    /**
+     * @method assignRole
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static assignRole(req, res) {
+        return response(res, httpStatus.OK, 'role assigned successfully');
     }
 
     // /**

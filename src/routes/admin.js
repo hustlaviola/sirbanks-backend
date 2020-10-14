@@ -20,19 +20,7 @@ router.get('/drivers',
     AdminMiddleware.validateGetUsers,
     AdminController.getUsers);
 
-router.get('/riders',
-    AuthValidator.userAuth,
-    AdminMiddleware.validateGetUsers,
-    AdminController.getUsers);
-
 router.get('/drivers/:userId',
-    AuthValidator.userAuth,
-    validator('userId'),
-    validate,
-    AdminMiddleware.validateGetUser,
-    AdminController.getUser);
-
-router.get('/riders/:userId',
     AuthValidator.userAuth,
     validator('userId'),
     validate,
@@ -46,33 +34,19 @@ router.get('/drivers/:userId/trips',
     UserValidator.validateGetUserTrips,
     UserController.getUserTrips);
 
-router.get('/riders/:userId/trips',
-    AuthValidator.userAuth,
-    validator('userId'),
-    validate,
-    UserValidator.validateGetUserTrips,
-    UserController.getUserTrips);
-
-router.get('/:adminId',
-    AuthValidator.userAuth,
-    validator('adminId'),
-    validate,
-    AdminMiddleware.validateGetAdmin,
-    AdminController.getAdmin);
-
-router.get('/drivers/:driverId/approve',
+router.get('/drivers/:driverId/activate',
     AuthValidator.userAuth,
     validator('driverId'),
     validate,
-    AdminMiddleware.validateDriverApproval,
-    AdminController.approveDriver);
+    AdminMiddleware.validateDriverActivation,
+    AdminController.activateDriver);
 
-router.post('/onboarding',
+router.get('/drivers/:driverId/deactivate',
     AuthValidator.userAuth,
-    validator('user_onboarding'),
+    validator('driverId'),
     validate,
-    AdminMiddleware.validateAdminOnboarding,
-    AdminController.onboardAdmin);
+    AdminMiddleware.validateDriverDeactivation,
+    AdminController.deactivateDriver);
 
 router.post('/drivers/onboarding',
     AuthValidator.userAuth,
@@ -81,12 +55,64 @@ router.post('/drivers/onboarding',
     AdminMiddleware.validateAddUser,
     AdminController.addUser);
 
+router.put('/drivers/:reference/onboarding/vehicle_details',
+    AuthValidator.userAuth,
+    validator('vehicle_details'),
+    validate,
+    UserValidator.validateVehicleDetails,
+    UserController.updateVehicleDetails);
+
+router.put('/drivers/:reference/onboarding/complete',
+    AuthValidator.userAuth,
+    UserValidator.validateFiles,
+    UserController.upLoadDriverFiles);
+
+router.put('/drivers/:userId',
+    AuthValidator.userAuth,
+    validator('update_user'),
+    validate,
+    UserValidator.validateUserUpdate,
+    UserController.updateUser);
+
+router.get('/riders',
+    AuthValidator.userAuth,
+    AdminMiddleware.validateGetUsers,
+    AdminController.getUsers);
+
+router.get('/riders/:userId',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    AdminMiddleware.validateGetUser,
+    AdminController.getUser);
+
+router.get('/riders/:userId/trips',
+    AuthValidator.userAuth,
+    validator('userId'),
+    validate,
+    UserValidator.validateGetUserTrips,
+    UserController.getUserTrips);
+
 router.post('/riders/onboarding',
     AuthValidator.userAuth,
     validator('user_onboarding'),
     validate,
     AdminMiddleware.validateAddUser,
     AdminController.addUser);
+
+router.put('/riders/:userId/',
+    AuthValidator.userAuth,
+    validator('update_user'),
+    validate,
+    UserValidator.validateUserUpdate,
+    UserController.updateUser);
+
+router.post('/onboarding',
+    AuthValidator.userAuth,
+    validator('admin_onboarding'),
+    validate,
+    AdminMiddleware.validateAdminOnboarding,
+    AdminController.onboardAdmin);
 
 router.post('/login',
     validator('admin_login'),
@@ -101,31 +127,19 @@ router.patch('/upload_avatar',
     UserValidator.validateAvatarUpload,
     UserController.uploadAvatar);
 
-router.put('/drivers/:reference/onboarding/vehicle_details',
+router.get('/:adminId',
     AuthValidator.userAuth,
-    validator('vehicle_details'),
+    validator('adminId'),
     validate,
-    UserValidator.validateVehicleDetails,
-    UserController.updateVehicleDetails);
+    AdminMiddleware.validateGetAdmin,
+    AdminController.getAdmin);
 
-router.put('/drivers/:reference/onboarding/complete',
+router.put('/:adminId/role',
     AuthValidator.userAuth,
-    UserValidator.validateFiles,
-    UserController.upLoadDriverFiles);
-
-router.put('/riders/:userId/',
-    AuthValidator.userAuth,
-    validator('update_user'),
+    validator('role_assignment'),
     validate,
-    UserValidator.validateUserUpdate,
-    UserController.updateUser);
-
-router.put('/drivers/:userId/',
-    AuthValidator.userAuth,
-    validator('update_user'),
-    validate,
-    UserValidator.validateUserUpdate,
-    UserController.updateUser);
+    AdminMiddleware.validateRoleAssignment,
+    AdminController.assignRole);
 
 // router.get('/addem',
 //     AuthValidator.userAuth,

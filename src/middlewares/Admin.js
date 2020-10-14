@@ -27,9 +27,9 @@ export default class Admin {
      */
     static async validateAdminOnboarding(req, res, next) {
         const {
-            email, firstName, lastName, phone
+            email, firstName, lastName, phone, role
         } = req.body;
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (req.user.role !== 'super admin') {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -49,11 +49,11 @@ export default class Admin {
             const publicId = `PB-${uuid()}`;
             const avatar = 'https://res.cloudinary.com/viola/image/upload/v1575029224/wb9azacz6mblteapgtr9.png';
             let admin = {
-                firstName, lastName, email, password, phone, publicId, avatar
+                firstName, lastName, email, password, phone, publicId, avatar, role
             };
             admin = await AdminService.createAdmin(admin);
-            const { id, permissions } = admin;
-            const token = await Helper.generateToken({ id, permissions });
+            const { id } = admin;
+            const token = await Helper.generateToken({ id, role });
             req.admin = {
                 id,
                 firstName,
@@ -92,8 +92,8 @@ export default class Admin {
                     messages.invalidCred, httpStatus.BAD_REQUEST, true
                 ));
             }
-            const { id, permissions } = admin;
-            const token = await Helper.generateToken({ id, permissions });
+            const { id, role } = admin;
+            const token = await Helper.generateToken({ id, role });
             admin.lastLoggedInAt = Date.now();
             await admin.save();
             req.admin = {
@@ -123,7 +123,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetUsers(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -153,7 +153,7 @@ export default class Admin {
      */
     static async validateGetUser(req, res, next) {
         const { userId } = req.params;
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -186,7 +186,7 @@ export default class Admin {
      */
     static async validateDeleteUser(req, res, next) {
         const { userId } = req.params;
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (req.user.role !== 'super admin') {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -219,7 +219,7 @@ export default class Admin {
     //  */
     // static async validateGetTrips(req, res, next) {
     //     const { userId } = req.params;
-    //     if (!req.user.permissions) {
+    //     if (!req.user.role.includes(['admin', 'super admin'])) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -248,7 +248,7 @@ export default class Admin {
     //  */
     // static async validateGetTrip(req, res, next) {
     //     const { userId } = req.params;
-    //     if (!req.user.permissions) {
+    //     if (!req.user.role.includes(['admin', 'super admin'])) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -276,7 +276,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateAddUser(req, res, next) {
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -367,7 +367,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetAdmins(req, res, next) {
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -391,7 +391,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetAdmin(req, res, next) {
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -405,7 +405,7 @@ export default class Admin {
     }
 
     /**
-     * @method validateDriverApproval
+     * @method validateDriverActivation
      * @description
      * @static
      * @param {object} req - Request object
@@ -414,30 +414,111 @@ export default class Admin {
      * @returns {object} JSON response
      * @memberof Admin
      */
-    static async validateDriverApproval(req, res, next) {
-        if (!req.user.permissions) {
+    static async validateDriverActivation(req, res, next) {
+        if (!req.user.role.includes(['super admin', 'admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
         }
         const { driverId } = req.params;
         try {
-            const user = await UserService.findByIdAndRole(driverId, 'driver');
-            if (!user) {
-                return next(new APIError(messages.userNotFound, httpStatus.NOT_FOUND, true));
-            }
-            if (user.isApproved) {
-                return next(new APIError('Driver already approved', httpStatus.CONFLICT, true));
-            }
-            if (user.onboardingStatus !== 'completed') {
+            const driver = await UserService.findByIdAndRole(driverId, 'driver');
+            if (!driver) {
                 return next(new APIError(
-                    'Driver needs to complete onboarding process before approval',
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (driver.isActive === true) {
+                return next(new APIError(
+                    'user already activated', httpStatus.CONFLICT, true
+                ));
+            }
+            if (driver.onboardingStatus !== 'completed') {
+                return next(new APIError(
+                    'Driver needs to complete onboarding process before activation',
                     httpStatus.BAD_REQUEST,
                     true
                 ));
             }
-            user.isApproved = true;
-            await user.save();
+            driver.isActive = true;
+            await driver.save();
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateDriverDeactivation
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateDriverDeactivation(req, res, next) {
+        const { driverId } = req.params;
+        try {
+            if (req.user.role !== 'super admin') {
+                return next(new APIError(
+                    messages.unauthorized, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            const driver = await UserService.findByIdAndRole(driverId, 'driver');
+            if (!driver) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (driver.isActive === false) {
+                return next(new APIError(
+                    'user already deactivated', httpStatus.CONFLICT, true
+                ));
+            }
+            driver.isActive = false;
+            await driver.save();
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateRoleAssignment
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateRoleAssignment(req, res, next) {
+        if (req.user.role === 'super admin') {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.UNAUTHORIZED, true
+            ));
+        }
+        const { adminId } = req.params;
+        const { role } = req.body;
+        try {
+            const admin = await AdminService.findById(adminId);
+            if (!admin) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (admin.role === role) {
+                return next(new APIError(
+                    `user is already ${role}`, httpStatus.CONFLICT, true
+                ));
+            }
+            admin.role = role;
+            await admin.save();
             return next();
         } catch (error) {
             log(error);

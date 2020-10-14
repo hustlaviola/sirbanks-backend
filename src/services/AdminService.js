@@ -123,7 +123,7 @@ export default class AdminService {
         if (isDriver) {
             userDTO.isOnline = user.isOnline;
             userDTO.isAvailable = user.isAvailable;
-            userDTO.isApproved = user.isApproved;
+            userDTO.isActive = user.isActive;
             userDTO.vehicleDetails = user.vehicleDetails;
         }
         return userDTO;
@@ -290,7 +290,7 @@ export default class AdminService {
             email: admin.email,
             phone: admin.phone,
             avatar: admin.avatar,
-            permissions: admin.permissions,
+            role: admin.role,
             lastLoggedInAt: admin.lastLoggedInAt,
             joinedAt: admin.createdAt
         };

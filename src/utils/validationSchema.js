@@ -247,6 +247,39 @@ const validator = method => {
                 .isLength({ min: 6 })
                 .withMessage('password must be at least 6 characters')
         ];
+    case 'admin_onboarding':
+        return [
+            body('firstName')
+                .exists()
+                .withMessage('firstName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('firstName must be between 2 and 50 characters inclusive'),
+            body('lastName')
+                .exists()
+                .withMessage('lastName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('lastName must be between 2 and 50 characters inclusive'),
+            body('email')
+                .exists()
+                .withMessage('email is required')
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('phone')
+                .exists()
+                .withMessage('phone is required')
+                .isMobilePhone('en-NG', { strictMode: true })
+                .withMessage('please provide a valid phone number with country code'),
+            body('password')
+                .exists()
+                .withMessage('password is required')
+                .isLength({ min: 6 })
+                .withMessage('password must be at least 6 characters'),
+            body('role')
+                .exists()
+                .withMessage('role is required')
+                .isIn(['admin', 'super admin'])
+                .withMessage('role must be "admin" or "super admin"')
+        ];
     case 'admin_login':
         return [
             body('email')
@@ -378,6 +411,19 @@ const validator = method => {
                 .withMessage('type is required')
                 .isIn(['fund_wallet', 'add_card', 'payout'])
                 .withMessage('invalid type')
+        ];
+    case 'role_assignment':
+        return [
+            param('adminId')
+                .exists()
+                .withMessage('adminId is required')
+                .isMongoId()
+                .withMessage('Please provide a valid adminId'),
+            body('role')
+                .exists()
+                .withMessage('role is required')
+                .isIn(['admin', 'super admin'])
+                .withMessage('role can only be "admin" or "super admin"')
         ];
     // case 'get_users':
     //     return [

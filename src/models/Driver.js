@@ -111,7 +111,7 @@ const DriverSchema = new Schema({
         default: 'initiated',
         enum: ['initiated', 'personal_details', 'vehicle_details', 'completed']
     },
-    isApproved: {
+    isActive: {
         type: Boolean,
         default: false
     },

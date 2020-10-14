@@ -28,9 +28,9 @@ const AdminSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    permissions: {
-        type: Number,
-        default: 1
+    role: {
+        type: String,
+        default: 'admin'
     },
     lastLoggedInAt: {
         type: Date

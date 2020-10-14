@@ -138,12 +138,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.permissions) {
-                if (req.user.permissions < 3) {
-                    return next(new APIError(
-                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                    ));
-                }
+            if (req.user.role.includes(['admin', 'super admin'])) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -198,12 +193,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.permissions) {
-                if (req.user.permissions < 3) {
-                    return next(new APIError(
-                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                    ));
-                }
+            if (req.user.role.includes(['admin', 'super admin'])) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -325,12 +315,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.permissions) {
-                if (req.user.permissions < 3) {
-                    return next(new APIError(
-                        messages.unauthorized, httpStatus.UNAUTHORIZED, true
-                    ));
-                }
+            if (req.user.role.includes(['admin', 'super admin'])) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -462,13 +447,11 @@ export default class UserValidator {
      * @memberof UserValidator
      */
     static async validateGetUserTrips(req, res, next) {
-        const { id, permissions } = req.user;
-        let { role } = req.user;
+        const { id, role } = req.user;
         const { userId } = req.params;
+        const userRole = req.url.includes('drivers') ? 'driver' : 'rider';
         try {
-            if (permissions) {
-                role = req.url.includes('drivers') ? 'driver' : 'rider';
-            } else {
+            if (!role.includes(['admin', 'super admin'])) {
                 const user = await UserService.findById(id);
                 if (!user) {
                     return next(new APIError(
@@ -481,7 +464,7 @@ export default class UserValidator {
                     ));
                 }
             }
-            const trips = await UserService.getUserTrips(userId, role);
+            const trips = await UserService.getUserTrips(userId, userRole);
             const tripsDTO = Helper.formatTrips(trips, id);
             req.trips = tripsDTO;
             return next();
@@ -503,7 +486,7 @@ export default class UserValidator {
      */
     static async validateAvatarUpload(req, res, next) {
         try {
-            const { id, role, permissions } = req.user;
+            const { id, role } = req.user;
             // const { files } = req;
             const { avatar } = req.body;
             if (!isBase64(avatar, { mimeRequired: true })) {
@@ -530,7 +513,8 @@ export default class UserValidator {
             //     ));
             // }
             let user;
-            if (permissions) {
+            const isAdmin = role.includes(['admin', 'super admin']);
+            if (isAdmin) {
                 user = await AdminService.findById(id);
             } else {
                 user = await UserService.findByIdAndRole(id, role);
@@ -540,7 +524,7 @@ export default class UserValidator {
                     messages.userNotFound, httpStatus.NOT_FOUND, true
                 ));
             }
-            const result = await uploadBase64Image(avatar, user.publicId, 'avatar', permissions ? 'admin' : role);
+            const result = await uploadBase64Image(avatar, user.publicId, 'avatar', isAdmin ? 'admin' : role);
             user.avatar = result.secure_url;
             await user.save();
             req.user = user;
@@ -571,7 +555,7 @@ export default class UserValidator {
     //                 messages.userNotFound, httpStatus.NOT_FOUND, true
     //             ));
     //         }
-    //         if (id.toString() !== userId.toString() || user.permissions < 1) {
+    //       if (id.toString() !== userId.toString() || !role.includes(['admin', 'super admin'])) {
     //             return next(new APIError(
     //                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //             ));
@@ -597,7 +581,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateUsersCount(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -623,7 +607,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateDriversCount(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -649,7 +633,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateOnlineDrivers(req, res, next) {
-        if (!req.user.permissions) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -675,7 +659,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateUserUpdate(req, res, next) {
-        if (!req.user.permissions || req.user.permissions < 3) {
+        if (!req.user.role.includes(['admin', 'super admin'])) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
