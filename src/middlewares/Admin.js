@@ -9,6 +9,8 @@ import UserService from '../services/UserService';
 
 const log = debug('app:admin-middleware');
 
+const validRoles = ['admin', 'super admin'];
+
 /**
  * @class
  * @description
@@ -123,7 +125,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetUsers(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -136,7 +138,7 @@ export default class Admin {
             req.isDriver = isDriver;
             return next();
         } catch (error) {
-            log(error);
+            // log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -153,7 +155,7 @@ export default class Admin {
      */
     static async validateGetUser(req, res, next) {
         const { userId } = req.params;
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -276,7 +278,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateAddUser(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -367,7 +369,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetAdmins(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -391,7 +393,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateGetAdmin(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
@@ -415,7 +417,7 @@ export default class Admin {
      * @memberof Admin
      */
     static async validateDriverActivation(req, res, next) {
-        if (!req.user.role.includes(['super admin', 'admin'])) {
+        if (!validRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
