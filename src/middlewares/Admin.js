@@ -104,6 +104,7 @@ export default class Admin {
                 lastName: admin.lastName,
                 avatar: admin.avatar,
                 email,
+                role: admin.role,
                 lastLoggedInAt: admin.lastLoggedInAt
             };
             req.token = token;
