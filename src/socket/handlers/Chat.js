@@ -15,9 +15,9 @@ const log = debug('app:socket:chat');
 /**
  * @class
  * @description A handler class for Authentication
- * @exports Auth
+ * @exports ChatHandler
  */
-export default class Auth {
+export default class ChatHandler {
     /**
      * @method privateMessage
      * @description
@@ -25,7 +25,7 @@ export default class Auth {
      * @param {object} socket - Request object
      * @param {object} data - Response object
      * @returns {object} JSON response
-     * @memberof Auth
+     * @memberof ChatHandler
      */
     static async privateMessage(socket, data) {
         try {
