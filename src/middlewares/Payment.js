@@ -146,17 +146,17 @@ export default class Payment {
                     log(`FUNDING WALLET USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
                     transaction.channel = req.body.data.channel;
-                    transaction.paidAt = new Date(data.paidAt);
+                    transaction.paidAt = new Date(data.paid_at);
                     transaction.updatedAt = Date.now();
                     user.walletBalance += (data.amount / 100);
                     await transaction.save();
                     await user.save();
-                    log('FUNDING WALLET SUCCESSFUL');
+                    log('WALLET FUNDING SUCCESSFUL');
                 } else if (transaction.type === 'payout') {
                     // TODO - Save transaction channel
                     log(`PAYING OUT USER: ${user}, REF: ${reference}`);
                     transaction.status = 'success';
-                    transaction.paidAt = new Date(data.paidAt);
+                    transaction.paidAt = new Date(data.paid_at);
                     transaction.updatedAt = Date.now();
                     user.walletBalance -= (data.amount / 100);
                     await transaction.save();
