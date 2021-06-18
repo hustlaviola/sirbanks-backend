@@ -219,7 +219,7 @@ export default class UserService {
      * @description
      * @static
      * @param {string} id - User id
-     * @param {boolean} role
+     * @param {string} role
      * @returns {object} JSON response
      * @memberof UserService
      */
@@ -228,5 +228,53 @@ export default class UserService {
             return Rider.findById(id).select('walletBalance');
         }
         return Driver.findById(id).select('walletBalance');
+    }
+
+    /**
+     * @method userExists
+     * @description Check if user exists
+     * @static
+     * @param {string} id
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async userExists(id, role) {
+        if (role === 'rider') {
+            return (await Rider.findById(id).select(['_id'])) !== null;
+        }
+        return (await Driver.findById(id).select(['_id'])) !== null;
+    }
+
+    /**
+     * @method emailExists
+     * @description Check if email already exists
+     * @static
+     * @param {string} email
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async emailExists(email, role) {
+        if (role === 'rider') {
+            return (await Rider.findOne({ email }).select(['_id'])) !== null;
+        }
+        return (await Driver.findOne({ email }).select(['_id'])) !== null;
+    }
+
+    /**
+     * @method phoneExists
+     * @description Check if phone already exists
+     * @static
+     * @param {string} phone
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof UserService
+     */
+    static async phoneExists(phone, role) {
+        if (role === 'rider') {
+            return (await Rider.findOne({ phone }).select(['_id'])) !== null;
+        }
+        return (await Driver.findOne({ phone }).select(['_id'])) !== null;
     }
 }

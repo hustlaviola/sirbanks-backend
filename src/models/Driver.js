@@ -5,11 +5,12 @@ const { Schema } = mongoose;
 const DriverSchema = new Schema({
     email: {
         type: String,
-        unique: true,
-        sparse: true
+        required: true,
+        unique: true
     },
     password: {
-        type: String
+        type: String,
+        required: true
     },
     firstName: {
         type: String
@@ -26,11 +27,6 @@ const DriverSchema = new Schema({
         type: String
     },
     publicId: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    referenceId: {
         type: String,
         required: true,
         unique: true

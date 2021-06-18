@@ -17,6 +17,32 @@ const log = debug('app:onboarding-controller');
  * @exports Onboarding
  */export default class Onboarding {
     /**
+     * @method initiateOnboarding
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Onboarding
+     */
+    static async initiateOnboarding(req, res) {
+        return response(res, httpStatus.OK, messages.phoneCode);
+    }
+
+    /**
+     * @method completeOnboarding
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Onboarding
+     */
+    static async completeOnboarding(req, res) {
+        return response(res, httpStatus.OK, messages.phoneVerified);
+    }
+
+    /**
      * @method phoneVerification
      * @description
      * @static

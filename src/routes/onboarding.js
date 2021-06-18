@@ -6,6 +6,18 @@ import OnboardingMiddleware from '../middlewares/Onboarding';
 
 const router = express.Router();
 
+router.post('/initiate',
+    validator('initiate_onboarding'),
+    validate,
+    OnboardingMiddleware.initiateOnboarding,
+    OnboardingController.initiateOnboarding);
+
+router.post('/complete',
+    validator('complete__onboarding'),
+    validate,
+    OnboardingMiddleware.completeOnboarding,
+    OnboardingController.completeOnboarding);
+
 router.post('/phone_verification',
     validator('phone_verification'),
     validate,

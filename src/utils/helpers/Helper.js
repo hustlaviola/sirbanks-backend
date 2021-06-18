@@ -288,7 +288,7 @@ export default class Helper {
      * @memberof Helper
      */
     static generateUniqueString() {
-        return uuid();
+        return uuid().replace(/-/g, '').toUpperCase();
     }
 
     // /**

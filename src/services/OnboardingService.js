@@ -1,5 +1,6 @@
 import twilio from 'twilio';
 
+import Onboarding from '../models/Onboarding';
 import Rider from '../models/Rider';
 import Driver from '../models/Driver';
 import Helper from '../utils/helpers/Helper';
@@ -71,5 +72,48 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
             return Rider.create(user);
         }
         return Driver.create(user);
+    }
+
+    /**
+     * @method addVerifiedUser
+     * @description
+     * @static
+     * @param {object} user
+     * @param {string} role
+     * @returns {object} JSON response
+     * @memberof OnboardingService
+     */
+    static addVerifiedUser(user, role) {
+        user.publicId = `PB-${Helper.generateUniqueString()}`;
+        if (role === 'rider') {
+            return Rider.create(user);
+        }
+        return Driver.create(user);
+    }
+
+    /**
+     * @method addUser
+     * @description
+     * @static
+     * @param {object} user
+     * @returns {object} JSON response
+     * @memberof OnboardingService
+     */
+    static async addUser(user) {
+        const tempUser = await Onboarding.findOne({ phone: user.phone });
+        if (tempUser) await tempUser.remove();
+        return Onboarding.create(user);
+    }
+
+    /**
+     * @method findByPhone
+     * @description
+     * @static
+     * @param {string} phone
+     * @returns {object} JSON response
+     * @memberof OnboardingService
+     */
+    static findByPhone(phone) {
+        return Onboarding.findOne({ phone });
     }
 }

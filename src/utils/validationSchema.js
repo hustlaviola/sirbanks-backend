@@ -1,7 +1,51 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 const validator = method => {
     switch (method) {
+    case 'initiate_onboarding':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required')
+                .isMobilePhone('en-NG', { strictMode: true })
+                .withMessage('please provide a valid phone number'),
+            body('email')
+                .isLength({ min: 1 })
+                .withMessage('email is required')
+                .isEmail()
+                .withMessage('Please provide a valid email'),
+            body('password')
+                .exists()
+                .withMessage('password is required')
+                .isLength({ min: 6 })
+                .withMessage('password must be at least 6 characters'),
+            query('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver", "rider"'),
+            body('deviceToken')
+                .optional()
+                .isLength({ max: 1000 })
+                .withMessage('deviceToken exceeded the maximum length'),
+            body('devicePlatform')
+                .optional()
+                .isIn(['ANDROID', 'IOS', 'WEB'])
+                .withMessage('devicePlatform can only be "ANDROID", "IOS", or "WEB"')
+        ];
+    case 'complete__onboarding':
+        return [
+            body('phone')
+                .isLength({ min: 1 })
+                .withMessage('phone is required'),
+            body('otp')
+                .exists()
+                .withMessage('otp is required')
+                .isInt()
+                .withMessage('Please provide a valid otp')
+                .isLength({ min: 4, max: 4 })
+                .withMessage('Please provide a valid otp')
+        ];
     case 'register':
         return [
             // oneOf([
@@ -30,8 +74,8 @@ const validator = method => {
             body('phone', 'Please provide a valid phone').exists(),
             body('password', 'password is required and must be at least 6 characters')
                 .isLength({ min: 6 })
-            // param('role', 'role is required and can only be "driver", "rider"')
-            //     .exists().isIn(['driver', 'rider'])
+                // param('role', 'role is required and can only be "driver", "rider"')
+                //     .exists().isIn(['driver', 'rider'])
         ];
     case 'phone_verification':
         return [
@@ -157,14 +201,14 @@ const validator = method => {
                 .exists()
                 .withMessage('token is required')
         ];
-    // case 'param_id':
-    //     return [
-    //         param('id')
-    //             .exists()
-    //             .withMessage('token is required')
-    //             .isMongoId()
-    //             .withMessage('Please provide a valid id')
-    //     ];
+        // case 'param_id':
+        //     return [
+        //         param('id')
+        //             .exists()
+        //             .withMessage('token is required')
+        //             .isMongoId()
+        //             .withMessage('Please provide a valid id')
+        //     ];
     case 'verify_email':
         return [
             body('otp', 'otp must be 4 digits').isInt().isLength({ min: 4, max: 4 })
@@ -425,14 +469,14 @@ const validator = method => {
                 .isIn(['admin', 'super admin'])
                 .withMessage('role can only be "admin" or "super admin"')
         ];
-    // case 'get_users':
-    //     return [
-    //         param('role')
-    //             .isLength({ min: 1 })
-    //             .withMessage('role is required')
-    //             .isIn(['drivers', 'riders'])
-    //             .withMessage('role can only be "driver", "rider"')
-    //     ];
+        // case 'get_users':
+        //     return [
+        //         param('role')
+        //             .isLength({ min: 1 })
+        //             .withMessage('role is required')
+        //             .isIn(['drivers', 'riders'])
+        //             .withMessage('role can only be "driver", "rider"')
+        //     ];
     default:
         break;
     }
