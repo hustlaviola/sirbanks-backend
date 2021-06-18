@@ -43,6 +43,10 @@ const DriverSchema = new Schema({
             type: String
         }
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     isEmailVerified: {
         type: Boolean,
         default: false

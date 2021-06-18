@@ -16,6 +16,19 @@ const log = debug('app:auth-controller');
  */
 export default class AuthController {
     /**
+     * @method logIn
+     * @description Logs a user in
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof AuthController
+     */
+    static async logIn(req, res) {
+        return response(res, httpStatus.OK, messages.loginSuccess, req.user);
+    }
+
+    /**
      * @method login
      * @description Logs a user in
      * @static

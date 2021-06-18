@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
+import validator from 'validator';
 
 import Helper from '../utils/helpers/Helper';
 import messages from '../utils/messages';
@@ -132,6 +133,69 @@ export default class Auth {
     //         return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
     //     }
     // }
+
+    /**
+     * @method logIn
+     * @description Validates Login with email and password
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Auth
+     */
+    static async logIn(req, res, next) {
+        try {
+            const {
+                phoneOrEmail, password, deviceToken, devicePlatform
+            } = req.body;
+            const { role } = req.params;
+            let user;
+            if (validator.isEmail(phoneOrEmail)) {
+                user = await UserService.findByEmailAndRole(phoneOrEmail, role);
+                if (!user) {
+                    return next(new APIError(
+                        messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
+                if (!user.isEmailVerified) {
+                    return next(new APIError(
+                        messages.notVerified, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
+            } else {
+                user = await UserService.findByPhoneAndRole(phoneOrEmail, role);
+                if (!user) {
+                    return next(new APIError(
+                        messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                    ));
+                }
+            }
+            const match = await Helper.comparePassword(password, user.password);
+            if (!match) {
+                return next(new APIError(
+                    messages.invalidCred, httpStatus.UNAUTHORIZED, true
+                ));
+            }
+            user.device = {
+                platform: devicePlatform,
+                token: deviceToken
+            };
+            const token = await Helper.generateToken({ id: user.id, role });
+            user.lastLoggedInAt = new Date();
+            await user.save();
+            req.user = {
+                id: user.id,
+                email: user.email,
+                phone: user.phone,
+                token
+            };
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
 
     /**
      * @method validateLogin

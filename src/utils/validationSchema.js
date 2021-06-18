@@ -131,10 +131,32 @@ const validator = method => {
                 .withMessage('password must be at least 6 characters'),
             body('deviceToken').exists()
                 .withMessage('deviceToken is required'),
-            body('devicePlatform').exists()
-                .withMessage('devicePlatform is required')
-                .isIn(['ANDROID', 'IOS'])
-                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
+            body('devicePlatform')
+                .optional()
+                .isIn(['ANDROID', 'IOS', 'WEB'])
+                .withMessage('devicePlatform can only be "ANDROID", "IOS", or "WEB"')
+        ];
+    case 'login':
+        return [
+            body('phoneOrEmail')
+                .isLength({ min: 1 })
+                .withMessage('phoneOrEmail is required'),
+            body('password')
+                .isLength({ min: 1 })
+                .withMessage('password is required'),
+            param('role')
+                .isLength({ min: 1 })
+                .withMessage('role is required')
+                .isIn(['driver', 'rider'])
+                .withMessage('role can only be "driver" or "rider"'),
+            body('deviceToken')
+                .optional()
+                .isLength({ max: 1000 })
+                .withMessage('deviceToken exceeded the maximum length'),
+            body('devicePlatform')
+                .optional()
+                .isIn(['ANDROID', 'IOS', 'WEB'])
+                .withMessage('devicePlatform can only be "ANDROID", "IOS", or "WEB"')
         ];
     case 'email_login':
         return [
@@ -151,10 +173,10 @@ const validator = method => {
                 .withMessage('role can only be "driver" or "rider"'),
             body('deviceToken').exists()
                 .withMessage('deviceToken is required'),
-            body('devicePlatform').exists()
-                .withMessage('devicePlatform is required')
-                .isIn(['ANDROID', 'IOS'])
-                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
+            body('devicePlatform')
+                .optional()
+                .isIn(['ANDROID', 'IOS', 'WEB'])
+                .withMessage('devicePlatform can only be "ANDROID", "IOS", or "WEB"')
         ];
     case 'phone_login':
         return [
@@ -171,10 +193,10 @@ const validator = method => {
                 .withMessage('role can only be "driver", "rider"'),
             body('deviceToken').exists()
                 .withMessage('deviceToken is required'),
-            body('devicePlatform').exists()
-                .withMessage('devicePlatform is required')
-                .isIn(['ANDROID', 'IOS'])
-                .withMessage('devicePlatform can only be "ANDROID" or "IOS"')
+            body('devicePlatform')
+                .optional()
+                .isIn(['ANDROID', 'IOS', 'WEB'])
+                .withMessage('devicePlatform can only be "ANDROID", "IOS", or "WEB"')
         ];
     case 'email_only':
         return [

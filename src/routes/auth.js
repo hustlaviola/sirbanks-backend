@@ -7,6 +7,12 @@ import validate from '../middlewares/validate';
 
 const router = express.Router();
 
+router.post('/:role/login',
+    validator('login'),
+    validate,
+    AuthValidator.logIn,
+    AuthController.logIn);
+
 router.post('/:role/email_login',
     validator('email_login'),
     validate,
