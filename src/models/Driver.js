@@ -106,11 +106,6 @@ const DriverSchema = new Schema({
             }
         }
     },
-    onboardingStatus: {
-        type: String,
-        default: 'initiated',
-        enum: ['initiated', 'personal_details', 'vehicle_details', 'completed']
-    },
     isActive: {
         type: Boolean,
         default: false

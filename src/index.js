@@ -96,7 +96,7 @@ app.use((err, req, res, next) => {
     handleError(err, res);
 });
 
-const { PORT } = process.env;
+const { PORT = 2000 } = process.env;
 
 const server = http.createServer(app);
 
