@@ -43,6 +43,7 @@ const messages = {
     onboardingCompleted: 'Driver onboarding completed',
     alreadyCompletedOnboarding: 'Onboarding already completed',
     alreadyUpdateVehicleDetails: 'Already updated vehicle details',
+    profileCompleted: 'Profile Completed',
     invalidIssueDate: 'Invalid issueDate',
     invalidExpDate: 'Invalid expDate',
     fileLimitReached: 'File size exceeds 10mb'

@@ -17,6 +17,13 @@ router.get('/online',
     UserValidator.validateOnlineDrivers,
     UserController.getOnlineDrivers);
 
+router.put('/profile_completion',
+    AuthValidator.userAuth,
+    validator('profile_completion'),
+    validate,
+    UserValidator.validateCompleteProfile,
+    UserController.completeProfile);
+
 router.put('/onboarding/vehicle_details',
     AuthValidator.userAuth,
     validator('vehicle_details'),

@@ -106,6 +106,10 @@ const DriverSchema = new Schema({
             }
         }
     },
+    isProfileCompleted: {
+        type: Boolean,
+        default: false
+    },
     isActive: {
         type: Boolean,
         default: false

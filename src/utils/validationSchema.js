@@ -237,6 +237,58 @@ const validator = method => {
             // param('role', 'role is required and can only be "driver", "rider"')
             //     .exists().isIn(['driver', 'rider'])
         ];
+    case 'profile_completion':
+        return [
+            body('year')
+                .exists()
+                .withMessage('year is required')
+                .isInt()
+                .isLength({ min: 4, max: 4 })
+                .withMessage('Please provide a valid year'),
+            body('make')
+                .exists()
+                .withMessage('make is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('make must be in the range of 2 to 50 characters'),
+            body('model')
+                .exists()
+                .withMessage('model is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('model must be in the range of 2 to 50 characters'),
+            body('numberPlate')
+                .exists()
+                .withMessage('numberPlate is required')
+                .isLength({ min: 2, max: 20 })
+                .withMessage('numberPlate must be in the range of 2 to 20 characters'),
+            body('color')
+                .exists()
+                .withMessage('color is required')
+                .isLength({ min: 2, max: 20 })
+                .withMessage('color must be in the range of 2 to 20 characters'),
+            body('licenceNo')
+                .exists()
+                .withMessage('licenceNo is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('licenceNo must be in the range of 2 to 50 characters'),
+            body('issueDate')
+                .exists()
+                .withMessage('issueDate is required'),
+            body('expDate')
+                .exists()
+                .withMessage('expDate is required'),
+            body('avatar')
+                .exists()
+                .withMessage('avatar is required'),
+            body('licence')
+                .exists()
+                .withMessage('licence is required'),
+            body('insurance')
+                .exists()
+                .withMessage('insurance is required'),
+            body('vehiclePaper')
+                .exists()
+                .withMessage('vehiclePaper is required')
+        ];
     case 'vehicle_details':
         return [
             body('year')

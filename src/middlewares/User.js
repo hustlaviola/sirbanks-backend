@@ -78,6 +78,136 @@ export default class UserValidator {
     }
 
     /**
+     * @method validateCompleteProfile
+     * @description Validates driver profile completion
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof UserValidator
+     */
+    static async validateCompleteProfile(req, res, next) {
+        try {
+            const {
+                make,
+                model,
+                numberPlate,
+                color,
+                licenceNo,
+                avatar,
+                licence,
+                insurance,
+                vehiclePaper
+            } = req.body;
+            let { year, issueDate, expDate } = req.body;
+            year = parseInt(year, 10);
+            const thisYear = new Date().getFullYear();
+            if (year < 1990 || year > thisYear) {
+                return next(new APIError(
+                    `year can only be in the range of 1990 and ${thisYear}`, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (!Helper.isValidDate(issueDate)) {
+                return next(new APIError(
+                    messages.invalidIssueDate, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (!Helper.isValidDate(expDate)) {
+                return next(new APIError(
+                    messages.invalidExpDate, httpStatus.BAD_REQUEST, true
+                ));
+            }
+            issueDate = new Date(issueDate);
+            expDate = new Date(expDate);
+            if (expDate < issueDate) {
+                return next(new APIError(
+                    'expDate cannot come before issueDate', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (expDate < Date.now()) {
+                return next(new APIError(
+                    'expDate cannot come before the present date', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            const licenceDetails = { licenceNo, issueDate, expDate };
+            const vehicleDetails = {
+                make,
+                model,
+                year,
+                color,
+                numberPlate,
+                licenceDetails
+            };
+            const { reference } = req.params;
+            let user;
+            if (req.user.role.includes(['admin', 'super admin'])) {
+                if (!reference) {
+                    return next(new APIError(
+                        'reference is required', httpStatus.BAD_REQUEST, true
+                    ));
+                }
+                const isValidRef = Helper.isValidKey(reference, 'RF-');
+                if (!isValidRef) {
+                    return next(new APIError(
+                        messages.invalidUserRef, httpStatus.BAD_REQUEST, true
+                    ));
+                }
+                req.user.token = await Helper.generateToken({ id: user.id, role: 'driver' });
+                user = await UserService.findByReferenceNRole(reference, 'driver');
+            } else {
+                user = await UserService.findByIdAndRole(req.user.id, 'driver');
+            }
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (!isBase64(avatar, { mimeRequired: true })) {
+                return next(new APIError(
+                    'Invalid avatar format', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (!isBase64(licence, { mimeRequired: true })) {
+                return next(new APIError(
+                    'Invalid licence format', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (!isBase64(insurance, { mimeRequired: true })) {
+                return next(new APIError(
+                    'Invalid insurance format', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            if (!isBase64(vehiclePaper, { mimeRequired: true })) {
+                return next(new APIError(
+                    'Invalid vehiclePaper format', httpStatus.BAD_REQUEST, true
+                ));
+            }
+            user.vehicleDetails = vehicleDetails;
+            const tasks = [
+                uploadBase64Image(avatar, user.publicId, 'avatar'),
+                uploadBase64Image(licence, user.publicId, 'licence'),
+                uploadBase64Image(insurance, user.publicId, 'insurance'),
+                uploadBase64Image(vehiclePaper, user.publicId, 'vehiclePaper')
+            ];
+            const values = await Promise.all(tasks);
+            user.avatar = values[0].secure_url;
+            user.vehicleDetails.licenceDetails.licenceUrl = values[1].secure_url;
+            user.vehicleDetails.insuranceUrl = values[2].secure_url;
+            user.vehicleDetails.vehiclePaperUrl = values[3].secure_url;
+            user.isProfileCompleted = true;
+            await user.save();
+            req.user.vehicleDetails = user.vehicleDetails;
+            req.user.avatar = user.avatar;
+            req.user.isProfileCompleted = user.isProfileCompleted;
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
      * @method validateVehicleDetails
      * @description Validates vehicle details
      * @static

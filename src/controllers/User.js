@@ -15,6 +15,19 @@ const log = debug('app:user-controller');
  */
 export default class UserController {
     /**
+     * @method completeProfile
+     * @description Updates vehicle details
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof UserController
+     */
+    static async completeProfile(req, res) {
+        return response(res, httpStatus.OK, messages.profileCompleted, { user: req.user });
+    }
+
+    /**
      * @method updateVehicleDetails
      * @description Updates vehicle details
      * @static

@@ -49,6 +49,7 @@
     "mailgen": "^2.0.13",
     "moment": "^2.27.0",
     "mongoose": "^5.12.14",
+    "mongoose-aggregate-paginate-v2": "^1.0.42",
     "multer": "^1.4.2",
     "node-fetch": "^2.6.0",
     "request": "^2.88.2",
