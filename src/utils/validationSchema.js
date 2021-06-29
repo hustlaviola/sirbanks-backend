@@ -4,6 +4,18 @@ const validator = method => {
     switch (method) {
     case 'initiate_onboarding':
         return [
+            body('firstName').exists()
+                .withMessage('firstName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('firstName must be in the range of 2 to 50 characters')
+                .isAlpha()
+                .withMessage('firstName can only contain alphabets'),
+            body('lastName').exists()
+                .withMessage('lastName is required')
+                .isLength({ min: 2, max: 50 })
+                .withMessage('lastName must be in the range of 2 to 50 characters')
+                .isAlpha()
+                .withMessage('lastName can only contain alphabets'),
             body('phone')
                 .isLength({ min: 1 })
                 .withMessage('phone is required')

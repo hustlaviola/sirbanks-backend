@@ -1,64 +1,61 @@
-const paystack = request => {
+import fetch from 'node-fetch';
+
+const paystack = () => {
     const MySecretKey = `Bearer ${process.env.PAYSTACK_SECRET_KEY}`;
-    // sk_test_xxxx to be replaced by your own secret key
-    const initialize = (form, mycallback) => {
+
+    const initialize = data => {
+        const url = 'https://api.paystack.co/transaction/initialize';
         const options = {
-            url: 'https://api.paystack.co/transaction/initialize',
+            method: 'post',
+            body: JSON.stringify(data),
             headers: {
                 authorization: MySecretKey,
-                'content-type': 'application/json',
-                'cache-control': 'no-cache'
-            },
-            form
-        };
-        const callback = (error, response, body) => mycallback(error, body);
-
-        request.post(options, callback);
-    };
-
-    const verify = (ref, mycallback) => {
-        const options = {
-            url: `https://api.paystack.co/transaction/verify/${encodeURIComponent(ref)}`,
-            headers: {
-                authorization: MySecretKey,
-                'content-type': 'application/json',
-                'cache-control': 'no-cache'
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
             }
         };
-
-        const callback = (error, response, body) => mycallback(error, body);
-
-        request(options, callback);
+        return fetch(url, options);
     };
 
-    const refund = (form, mycallback) => {
+    const verify = ref => {
+        const url = `https://api.paystack.co/transaction/verify/${encodeURIComponent(ref)}`;
         const options = {
-            url: 'https://api.paystack.co/refund',
+            method: 'get',
             headers: {
                 authorization: MySecretKey,
-                'content-type': 'application/json',
-                'cache-control': 'no-cache'
-            },
-            form
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
         };
-        const callback = (error, response, body) => mycallback(error, body);
-
-        request.post(options, callback);
+        return fetch(url, options);
     };
 
-    const chargeAuth = (form, mycallback) => {
+    const refund = data => {
+        const url = 'https://api.paystack.co/refund';
         const options = {
-            url: 'https://api.paystack.co/transaction/charge_authorization',
+            method: 'post',
+            body: JSON.stringify(data),
             headers: {
                 authorization: MySecretKey,
-                'content-type': 'application/json',
-                'cache-control': 'no-cache'
-            },
-            form
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
         };
-        const callback = (error, response, body) => mycallback(error, body);
+        return fetch(url, options);
+    };
 
-        request.post(options, callback);
+    const chargeAuth = data => {
+        const url = 'https://api.paystack.co/transaction/charge_authorization';
+        const options = {
+            method: 'post',
+            body: JSON.stringify(data),
+            headers: {
+                authorization: MySecretKey,
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        };
+        return fetch(url, options);
     };
 
     return {

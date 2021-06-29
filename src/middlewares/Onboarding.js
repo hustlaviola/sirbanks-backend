@@ -27,7 +27,7 @@ export default class Onboarding {
      */
     static async initiateOnboarding(req, res, next) {
         const {
-            phone, email, deviceToken, devicePlatform
+            firstName, lastName, phone, email, deviceToken, devicePlatform
         } = req.body;
         try {
             const phoneExists = await UserService.phoneExists(phone);
@@ -40,7 +40,14 @@ export default class Onboarding {
             }
             const password = await Helper.encryptPassword(req.body.password);
             const user = {
-                phone, email, password, role: req.query.role, deviceToken, devicePlatform
+                firstName,
+                lastName,
+                phone,
+                email,
+                password,
+                role: req.query.role,
+                deviceToken,
+                devicePlatform
             };
             const [err, rsp] = await promiseHandler(OnboardingService.sendPhoneCode(phone));
             log(`sendPhoneCode ERR == ${err}`);
@@ -84,6 +91,8 @@ export default class Onboarding {
             log(`verifyPhone ERR == ${err}`);
             log(`verifyPhone RSP == ${JSON.stringify(rsp)}`);
             const user = {
+                firstName: tempUser.firstName,
+                lastName: tempUser.lastName,
                 phone,
                 email: tempUser.email,
                 password: tempUser.password,

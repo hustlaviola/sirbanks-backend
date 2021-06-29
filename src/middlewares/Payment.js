@@ -1,5 +1,4 @@
 import httpStatus from 'http-status';
-import request from 'request';
 import crypto from 'crypto';
 import requestIp from 'request-ip';
 
@@ -11,10 +10,13 @@ import { debug } from '../config/logger';
 import UserService from '../services/UserService';
 import Helper from '../utils/helpers/Helper';
 import CardService from '../services/CardService';
+import promiseHandler from '../utils/promiseHandler';
 
 const log = debug('app:onboarding-middleware');
 
-const { initialize, refund, chargeAuth } = paystack(request);
+const {
+    initialize, refund, chargeAuth
+} = paystack();
 
 /**
  * @class
@@ -230,5 +232,68 @@ export default class Payment {
                 res.send(body);
             }
         });
+    }
+
+    /**
+     * @method initiateAddCard
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async initiateAddCard(req, res, next) {
+        const reference = `TX-${Helper.generateUniqueString()}`;
+        const { id, role } = req.user;
+        try {
+            const user = await UserService.findByIdAndRole(id, role);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const transaction = {
+                amount: 50,
+                user: id,
+                reference,
+                // narration: `Card added for ${user.firstName}, email: ${user.email}`,
+                type: 'add_card'
+            };
+            await TransactionService.createTransaction(transaction);
+            const form = {
+                amount: 5000,
+                email: user.email,
+                reference,
+                full_name: `${user.firstName} ${user.lastName}`
+            };
+            form.metadata = {
+                full_name: `${user.firstName} ${user.lastName}`
+            };
+            const [err, rsp] = await promiseHandler(initialize(form));
+            if (err) {
+                log(err);
+                return next(new APIError(
+                    'unable to process transaction', httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            const result = await rsp.json();
+            log(JSON.stringify(result));
+            if (!result.status || !result.data) {
+                return next(new APIError(
+                    'unable to process transaction', httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            req.paymentInfo = {
+                reference,
+                accessCode: result.data.access_code,
+                authorizationUrl: result.data.authorization_url
+            };
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
     }
 }

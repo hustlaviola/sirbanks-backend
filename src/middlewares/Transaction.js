@@ -4,6 +4,8 @@ import TransactionService from '../services/TransactionService';
 import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
 import Helper from '../utils/helpers/Helper';
+import UserService from '../services/UserService';
+import messages from '../utils/messages';
 
 const log = debug('app:onboarding-middleware');
 
@@ -25,23 +27,24 @@ export default class Transaction {
      */
     static async createTransaction(req, res, next) {
         const {
-            amount, email, name, type
+            amount, type
         } = req.body;
         const reference = `TX-${Helper.generateUniqueString()}`;
-        // const exists = await TransactionService.getTransactionByRef(reference);
-        // log('eXIST', exists);
-        // if (exists) {
-        //     return next(new APIError('reference already exists', httpStatus.CONFLICT, true));
-        // }
-        const { id } = req.user;
-        const transaction = {
-            amount,
-            user: id,
-            reference,
-            narration: `${type} for ${name}, email: ${email}`,
-            type
-        };
+        const { id, role } = req.user;
         try {
+            const user = await UserService.findByIdAndRole(id, role);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const transaction = {
+                amount,
+                user: id,
+                reference,
+                narration: `${type} for ${user.firstName}, email: ${user.email}`,
+                type
+            };
             await TransactionService.createTransaction(transaction);
             req.reference = reference;
             return next();

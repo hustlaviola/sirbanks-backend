@@ -9,6 +9,12 @@ const OnboardingSchema = new mongoose.Schema({
     code: {
         type: String
     },
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
     phone: {
         type: String
     },

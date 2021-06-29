@@ -32,4 +32,17 @@ import response from '../utils/response';
     static removeCard(req, res) {
         return response(res, httpStatus.OK, 'Card removed successfully');
     }
+
+    /**
+     * @method initiateAddCard
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static initiateAddCard(req, res) {
+        return response(res, httpStatus.OK, 'Add card initiation successful', req.paymentInfo);
+    }
 }
