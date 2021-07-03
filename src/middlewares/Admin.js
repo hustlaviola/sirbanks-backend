@@ -35,15 +35,15 @@ export default class Admin {
             return next(new APIError(messages.unauthorized, httpStatus.UNAUTHORIZED, true));
         }
         try {
-            const manager = await AdminService.findById(req.user.id);
-            if (!manager) {
+            const managerExists = await AdminService.adminExists(req.user.id);
+            if (!managerExists) {
                 return next(new APIError('Manager not found', httpStatus.NOT_FOUND, true));
             }
-            const adminEmailExists = await AdminService.findByEmail(email);
+            const adminEmailExists = await AdminService.adminEmailExists();
             if (adminEmailExists) {
                 return next(new APIError('email is already in use', httpStatus.CONFLICT, true));
             }
-            const adminPhoneExists = await AdminService.findByPhone(email);
+            const adminPhoneExists = await AdminService.adminPhoneExists(email);
             if (adminPhoneExists) {
                 return next(new APIError('phone is already in use', httpStatus.CONFLICT, true));
             }
@@ -465,7 +465,7 @@ export default class Admin {
     static async validateDriverDeactivation(req, res, next) {
         const { driverId } = req.params;
         try {
-            if (req.user.role !== 'super admin') {
+            if (req.user.role !== 'admin') {
                 return next(new APIError(
                     messages.unauthorized, httpStatus.UNAUTHORIZED, true
                 ));
@@ -522,6 +522,52 @@ export default class Admin {
             }
             admin.role = role;
             await admin.save();
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method validateDriverVerification
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static async validateDriverVerification(req, res, next) {
+        if (!validRoles.includes(req.user.role)) {
+            return next(new APIError(
+                messages.unauthorized, httpStatus.FORBIDDEN, true
+            ));
+        }
+        const { driverId } = req.params;
+        try {
+            const driver = await UserService.findByIdAndRole(driverId, 'driver');
+            if (!driver) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (driver.isVerified === true) {
+                return next(new APIError(
+                    'driver already verified', httpStatus.CONFLICT, true
+                ));
+            }
+            if (!driver.isProfileCompleted) {
+                return next(new APIError(
+                    'driver needs to complete profile before verification',
+                    httpStatus.BAD_REQUEST,
+                    true
+                ));
+            }
+            driver.isActive = true;
+            driver.isVerified = true;
+            await driver.save();
             return next();
         } catch (error) {
             log(error);

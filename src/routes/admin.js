@@ -48,6 +48,13 @@ router.get('/drivers/:driverId/deactivate',
     AdminMiddleware.validateDriverDeactivation,
     AdminController.deactivateDriver);
 
+router.get('/drivers/:driverId/verification',
+    AuthValidator.userAuth,
+    validator('driverId'),
+    validate,
+    AdminMiddleware.validateDriverVerification,
+    AdminController.verifyDriver);
+
 router.post('/drivers/onboarding',
     AuthValidator.userAuth,
     validator('user_onboarding'),

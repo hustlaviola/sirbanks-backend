@@ -226,6 +226,19 @@ export default class AdminController {
         return response(res, httpStatus.OK, 'role assigned successfully');
     }
 
+    /**
+     * @method verifyDriver
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static verifyDriver(req, res) {
+        return response(res, httpStatus.OK, 'driver verified successfully');
+    }
+
     // /**
     //  * @method AddCars
     //  * @description

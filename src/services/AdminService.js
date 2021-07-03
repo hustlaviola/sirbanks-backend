@@ -14,6 +14,42 @@ import Model from '../models/Model';
  */
 export default class AdminService {
     /**
+     * @method adminExists
+     * @description Check if admin exists
+     * @static
+     * @param {string} id
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async adminExists(id) {
+        return (await Admin.findById(id).select(['_id'])) !== null;
+    }
+
+    /**
+     * @method adminEmailExists
+     * @description Check if admin email exists
+     * @static
+     * @param {string} email
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async adminEmailExists(email) {
+        return (await Admin.findOne({ email }).select(['_id'])) !== null;
+    }
+
+    /**
+     * @method adminPhoneExists
+     * @description Check if admin phone exists
+     * @static
+     * @param {string} phone
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static async adminPhoneExists(phone) {
+        return (await Admin.findOne({ phone }).select(['_id'])) !== null;
+    }
+
+    /**
      * @method findByEmail
      * @description
      * @static
