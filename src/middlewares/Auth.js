@@ -188,6 +188,8 @@ export default class Auth {
                 id: user.id,
                 email: user.email,
                 phone: user.phone,
+                isProfileCompleted: user.isProfileCompleted,
+                isVerified: user.isVerified,
                 token
             };
             return next();
