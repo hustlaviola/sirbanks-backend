@@ -555,6 +555,12 @@ const validator = method => {
                 .isIn(['admin', 'super admin'])
                 .withMessage('role can only be "admin" or "super admin"')
         ];
+    case 'complete_payment':
+        return [
+            query('reference')
+                .exists()
+                .withMessage('reference is required')
+        ];
         // case 'get_users':
         //     return [
         //         param('role')

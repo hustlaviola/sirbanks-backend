@@ -15,7 +15,7 @@ import promiseHandler from '../utils/promiseHandler';
 const log = debug('app:onboarding-middleware');
 
 const {
-    initialize, refund, chargeAuth
+    initialize, refund, chargeAuth, verify
 } = paystack();
 
 /**
@@ -295,5 +295,147 @@ export default class Payment {
             log(error);
             return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
         }
+    }
+
+    /**
+     * @method completePayment
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async completePayment(req, res, next) {
+        const { reference } = req.query;
+        try {
+            const transaction = await TransactionService
+                .getTransactionByRef(reference);
+            if (!transaction) {
+                return next(new APIError(
+                    messages.txNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const user = await UserService.findById(transaction.user);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            if (transaction.status === 'success') return next();
+            if (transaction.status === 'failed') {
+                return next(new APIError(
+                    messages.paymentFailed, httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            const [err, rsp] = await promiseHandler(verify(reference));
+            if (err) {
+                return next(new APIError(messages.tnxVerifErr, httpStatus.BAD_GATEWAY, true));
+            }
+            const result = await rsp.json();
+            log(`REQUERY PAYMENT RESPONSE ${JSON.stringify(result)}`);
+            if (!(result.status && result.data.status === 'success')) {
+                transaction.status = 'failed';
+                await transaction.save();
+                return next(new APIError(
+                    messages.tnxVerifErr, httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            if (transaction.type === 'add_card') {
+                const addCard = await Payment.addCard(user, transaction, result.data);
+                if (!addCard.isSuccessful) {
+                    return next(new APIError(
+                        messages.paymentFailed, httpStatus.UNPROCESSABLE_ENTITY, true
+                    ));
+                }
+            } else if (transaction.type === 'fund_wallet') {
+                user.walletBalance += transaction.amount;
+                await user.save();
+            }
+            next();
+        } catch (error) {
+            log('ERROR WHILE COMPLETING PAYMENT', error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    /**
+     * @method addCard
+     * @description
+     * @static
+     * @param {object} user
+     * @param {object} transaction
+     * @param {object} data
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async addCard(user, transaction, data) {
+        const { authorization, customer, reference } = data;
+        log(`ADDING CARD USER: ${user.id}, REF: ${reference}`);
+        const [err, rsp] = await promiseHandler(refund({ transaction: reference }));
+        if (err) {
+            user.walletBalance += 50;
+        } else if (rsp) {
+            const result = await rsp.json();
+            log(`REFUND PAYMENT RESPONSE ${JSON.stringify(result)}`);
+            if (!result.status) {
+                user.walletBalance += 50;
+            }
+        }
+        // transaction.paidAt = result.data.transaction.paid_at;
+        // transaction.channel = result.data.transaction.channel;
+        transaction.status = 'success';
+        transaction.narration += 'Add card transaction';
+        if (!authorization.reusable) {
+            transaction.status = 'failed';
+            return { isSuccessful: false, message: 'unable to add card' };
+        }
+        const encryptedData = await Helper.encrypt(
+            authorization.authorization_code
+        );
+        const card = {
+            user: user.id,
+            encrypted: {
+                key: encryptedData.key,
+                iv: encryptedData.iv,
+                crypt: encryptedData.crypt
+            },
+            bin: authorization.bin,
+            signature: authorization.signature,
+            bank: authorization.bank,
+            countryCode: authorization.country_code,
+            accountName: authorization.account_name,
+            expMonth: authorization.exp_month,
+            expYear: authorization.exp_year,
+            suffix: authorization.last4,
+            brand: authorization.brand,
+            type: authorization.card_type,
+            email: customer.email,
+            default: true
+        };
+        log('CARD -------', card);
+        let conflictCard;
+        const cards = await CardService.getAllDisplayableCards(user.id);
+        const defaultCard = await CardService.getDefaultCard(user.id);
+        if (defaultCard) {
+            defaultCard.default = false;
+            await defaultCard.save();
+        }
+        for (let i = 0; i < cards.length; i += 1) {
+            if (cards[i].signature === card.signature) {
+                log('ONE EQUAL AM OOOOO');
+                conflictCard = cards[i].id;
+                break;
+            }
+        }
+        if (conflictCard) await CardService.removeCard(conflictCard);
+        await CardService.addCard(card);
+        user.addedCard = true;
+        await user.save();
+        transaction.updatedAt = Date.now();
+        await transaction.save();
+        log('ADD CARD AND REFUND SUCCESSFUL');
+        return { isSuccessful: true };
     }
 }

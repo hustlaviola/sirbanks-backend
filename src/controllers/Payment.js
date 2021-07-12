@@ -45,4 +45,17 @@ import response from '../utils/response';
     static initiateAddCard(req, res) {
         return response(res, httpStatus.OK, 'Add card initiation successful', req.paymentInfo);
     }
+
+    /**
+     * @method completePayment
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static completePayment(req, res) {
+        return response(res, httpStatus.OK, 'Success');
+    }
 }
