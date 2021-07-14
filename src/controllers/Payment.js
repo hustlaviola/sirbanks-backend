@@ -58,4 +58,17 @@ import response from '../utils/response';
     static completePayment(req, res) {
         return response(res, httpStatus.OK, 'Success');
     }
+
+    /**
+     * @method initiateFundWallet
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static initiateFundWallet(req, res) {
+        return response(res, httpStatus.OK, 'Fund wallet initiation successful', req.paymentInfo);
+    }
 }

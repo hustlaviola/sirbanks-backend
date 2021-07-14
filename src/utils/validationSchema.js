@@ -561,6 +561,14 @@ const validator = method => {
                 .exists()
                 .withMessage('reference is required')
         ];
+    case 'fund_wallet':
+        return [
+            query('amount')
+                .exists()
+                .withMessage('amount is required')
+                .isNumeric()
+                .withMessage('please provide a valid amount')
+        ];
         // case 'get_users':
         //     return [
         //         param('role')

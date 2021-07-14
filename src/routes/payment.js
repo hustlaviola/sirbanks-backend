@@ -13,6 +13,13 @@ router.get('/cards/addition',
     PaymentMiddleware.initiateAddCard,
     PaymentController.initiateAddCard);
 
+router.get('/wallet/funding',
+    AuthValidator.userAuth,
+    validator('fund_wallet'),
+    validate,
+    PaymentMiddleware.initiateFundWallet,
+    PaymentController.initiateFundWallet);
+
 router.get('/completion',
     AuthValidator.userAuth,
     validator('complete_payment'),

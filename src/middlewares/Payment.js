@@ -351,6 +351,9 @@ export default class Payment {
                 }
             } else if (transaction.type === 'fund_wallet') {
                 user.walletBalance += transaction.amount;
+                transaction.status = 'success';
+                transaction.narration = `Wallet funded with ${transaction.amount}`;
+                await transaction.save();
                 await user.save();
             }
             next();
@@ -386,7 +389,7 @@ export default class Payment {
         // transaction.paidAt = result.data.transaction.paid_at;
         // transaction.channel = result.data.transaction.channel;
         transaction.status = 'success';
-        transaction.narration += 'Add card transaction';
+        transaction.narration = 'Add card transaction';
         if (!authorization.reusable) {
             transaction.status = 'failed';
             return { isSuccessful: false, message: 'unable to add card' };
@@ -437,5 +440,69 @@ export default class Payment {
         await transaction.save();
         log('ADD CARD AND REFUND SUCCESSFUL');
         return { isSuccessful: true };
+    }
+
+    /**
+     * @method initiateFundWallet
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @param {object} next
+     * @returns {object} JSON response
+     * @memberof Payment
+     */
+    static async initiateFundWallet(req, res, next) {
+        const reference = `TX-${Helper.generateUniqueString()}`;
+        const { id, role } = req.user;
+        const { amount } = req.query;
+        try {
+            const user = await UserService.findByIdAndRole(id, role);
+            if (!user) {
+                return next(new APIError(
+                    messages.userNotFound, httpStatus.NOT_FOUND, true
+                ));
+            }
+            const transaction = {
+                amount,
+                user: id,
+                reference,
+                // narration: `Card added for ${user.firstName}, email: ${user.email}`,
+                type: 'fund_wallet'
+            };
+            await TransactionService.createTransaction(transaction);
+            const form = {
+                amount: amount * 100,
+                email: user.email,
+                reference,
+                full_name: `${user.firstName} ${user.lastName}`
+            };
+            form.metadata = {
+                full_name: `${user.firstName} ${user.lastName}`
+            };
+            const [err, rsp] = await promiseHandler(initialize(form));
+            if (err) {
+                log(err);
+                return next(new APIError(
+                    'unable to process transaction', httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            const result = await rsp.json();
+            log(JSON.stringify(result));
+            if (!result.status || !result.data) {
+                return next(new APIError(
+                    'unable to process transaction', httpStatus.UNPROCESSABLE_ENTITY, true
+                ));
+            }
+            req.paymentInfo = {
+                reference,
+                accessCode: result.data.access_code,
+                authorizationUrl: result.data.authorization_url
+            };
+            return next();
+        } catch (error) {
+            log(error);
+            return next(new APIError(error, httpStatus.INTERNAL_SERVER_ERROR));
+        }
     }
 }
