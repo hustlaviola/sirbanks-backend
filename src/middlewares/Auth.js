@@ -188,6 +188,10 @@ export default class Auth {
                 id: user.id,
                 email: user.email,
                 phone: user.phone,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatar: user.avatar,
+                location: user.location,
                 isProfileCompleted: user.isProfileCompleted,
                 isVerified: user.isVerified,
                 token
