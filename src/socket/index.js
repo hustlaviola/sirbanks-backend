@@ -51,9 +51,9 @@ export default class SocketServer {
         io.sockets.on('connection', socket => {
             connectCounter++;
             socket.emit('CON', 'Connection successful');
-            // const { token } = socket.handshake.query;
-            // log(`${connectCounter} client(s) connected`);
-            // AuthHandler.conn(socket, token);
+            const { token } = socket.handshake.query;
+            log(`${connectCounter} client(s) connected`);
+            AuthHandler.conn(socket, token);
             // socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
 
             socket.on(UPDATE_LOCATION, data => TripHandler.updateLocation(socket, data));
