@@ -24,18 +24,18 @@ export default class Auth {
      * @description
      * @static
      * @param {object} socket - Request object
-     * @param {object} token - Response object
+     * @param {object} authorization - Response object
      * @returns {object} JSON response
      * @memberof Auth
      */
-    static async conn(socket, token) {
+    static async conn(socket, authorization) {
         try {
-            if (!token) {
+            if (!authorization) {
                 log('token is required');
                 socket.emit(ERROR, 'token is required');
                 return socket.disconnect();
             }
-            token = token.replace('Bearer ', '');
+            const token = authorization.replace('Bearer ', '');
             if (!validator.isJWT(token)) {
                 log('Invalid token');
                 socket.emit(ERROR, 'Invalid token');
