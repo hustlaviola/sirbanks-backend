@@ -52,6 +52,7 @@ export default class SocketServer {
             connectCounter++;
             socket.emit('CON', 'Connection successful');
             const { token } = socket.handshake.query;
+            log(`TOKEN ${token}`);
             log(`${connectCounter} client(s) connected`);
             AuthHandler.conn(socket, token);
             // socket.on(AUTH, data => AuthHandler.authenticate(socket, data));
