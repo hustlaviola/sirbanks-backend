@@ -36,6 +36,9 @@ export default class Auth {
                 return socket.disconnect();
             }
             const token = authorization.replace('Bearer ', '');
+            log(`Token ${token}`);
+            const dec = await Helper.decodeToken(token);
+            log(dec);
             if (!validator.isJWT(token)) {
                 log('Invalid token');
                 socket.emit(ERROR, 'Invalid token');
