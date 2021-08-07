@@ -99,6 +99,7 @@ export default class TripHandler {
                         const [compLon, compLat] = driver.location.coordinates;
                         let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${lat},${lon}&destinations=${compLat},${compLon}&key=${GOOGLE_MAPS_API_KEY}`);
                         tripResult = await tripResult.json();
+                        log('tripResult', tripResult);
                         let duration;
                         let distance;
                         if (tripResult.status === 'OK') {
