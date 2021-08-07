@@ -216,6 +216,7 @@ export default class TripHandler {
             // socket.emit(SUCCESS, 'Location updated Successfully');
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -253,6 +254,7 @@ export default class TripHandler {
             return Helper.emitByID(id, SUCCESS, `You are now ${availability ? 'available' : 'unavailable'}`);
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -330,6 +332,7 @@ export default class TripHandler {
                 const driverLat = drivers[0].location.coordinates[1];
                 let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
                 driverResult = await driverResult.json();
+                log('driverResult', driverResult);
                 if (driverResult.status === 'OK') {
                     const driverResponse = driverResult.rows[0].elements[0];
                     const driverDurationDistance = await Helper.getDurationAndDistance(
