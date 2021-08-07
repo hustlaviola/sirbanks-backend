@@ -98,8 +98,8 @@ export default class TripHandler {
                         const driver = await Driver.findById(trip.driverId);
                         const [compLon, compLat] = driver.location.coordinates;
                         let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${lat},${lon}&destinations=${compLat},${compLon}&key=${GOOGLE_MAPS_API_KEY}`);
-                        tripResult = await tripResult.json();
                         log('tripResult', tripResult);
+                        tripResult = await tripResult.json();
                         let duration;
                         let distance;
                         if (tripResult.status === 'OK') {
@@ -317,8 +317,8 @@ export default class TripHandler {
             //     return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             // }
             let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
-            tripResult = await tripResult.json();
             log('tripResult', tripResult);
+            tripResult = await tripResult.json();
             const tripDetails = {};
             if (tripResult.status === 'OK') {
                 const tripResponse = tripResult.rows[0].elements[0];
@@ -332,8 +332,8 @@ export default class TripHandler {
                 const driverLon = drivers[0].location.coordinates[0];
                 const driverLat = drivers[0].location.coordinates[1];
                 let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
-                driverResult = await driverResult.json();
                 log('driverResult', driverResult);
+                driverResult = await driverResult.json();
                 if (driverResult.status === 'OK') {
                     const driverResponse = driverResult.rows[0].elements[0];
                     const driverDurationDistance = await Helper.getDurationAndDistance(
