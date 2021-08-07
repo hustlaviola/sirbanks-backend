@@ -275,6 +275,9 @@ export default class TripHandler {
                 pickUpLat: ${pickUpLat},
                 dropOffLon: ${dropOffLon},
                 dropOffLat ${dropOffLat}`);
+            if (!id || !pickUpLat || !pickUpLon || !dropOffLat || !dropOffLon) {
+                return socket.emit(ERROR, 'Missing required fields');
+            }
             if (!validator.isMongoId(id)) {
                 return socket.emit(ERROR, 'Invalid id');
             }
@@ -344,6 +347,7 @@ export default class TripHandler {
             return socket.emit(TRIP_DETAILS, JSON.stringify(tripDetails));
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -457,6 +461,7 @@ export default class TripHandler {
             return Helper.dispatch(data, drivers, 60);
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -604,6 +609,7 @@ export default class TripHandler {
             return socket.emit(REQUEST_ACCEPTED, JSON.stringify(newDriverTrip));
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -642,6 +648,7 @@ export default class TripHandler {
             return Helper.dispatch(reqInfo, drivers, 60);
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -720,6 +727,7 @@ export default class TripHandler {
             return Helper.emitById(trip.riderId, TRIP_STARTED, JSON.stringify(theTrip));
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -780,6 +788,7 @@ export default class TripHandler {
             return Helper.emitById(trip.driverId, DESTINATION_UPDATED, JSON.stringify(drop));
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
@@ -859,6 +868,7 @@ export default class TripHandler {
             return Helper.emitById(trip.driverId, TRIP_CANCELED, 'Trip canceled by rider');
         } catch (error) {
             log(error);
+            socket.emit(ERROR, 'An error occurred');
         }
     }
 
