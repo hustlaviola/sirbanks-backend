@@ -312,12 +312,13 @@ export default class TripHandler {
                     }
                 }
             ]);
-            log(drivers);
+            log('drivers', drivers);
             // if (!drivers.length) {
             //     return Helper.emitByID(id, NO_DRIVER_FOUND, 'No driver found');
             // }
             let tripResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
             tripResult = await tripResult.json();
+            log('tripResult', tripResult);
             const tripDetails = {};
             if (tripResult.status === 'OK') {
                 const tripResponse = tripResult.rows[0].elements[0];
