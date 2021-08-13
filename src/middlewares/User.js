@@ -11,6 +11,7 @@ import APIError from '../utils/errorHandler/ApiError';
 import { debug } from '../config/logger';
 import AdminService from '../services/AdminService';
 import AuthService from '../services/AuthService';
+import adminRoles from '../config/constants';
 
 const log = debug('app:onboarding-middleware');
 
@@ -141,7 +142,7 @@ export default class UserValidator {
             };
             const { reference } = req.params;
             let user;
-            if (req.user.role.includes(['admin', 'super admin'])) {
+            if (adminRoles.includes(req.user.role)) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -268,7 +269,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.role.includes(['admin', 'super admin'])) {
+            if (adminRoles.includes(req.user.role)) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -323,7 +324,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.role.includes(['admin', 'super admin'])) {
+            if (adminRoles.includes(req.user.role)) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -445,7 +446,7 @@ export default class UserValidator {
             const { reference } = req.params;
             let user;
             let isAdmin = false;
-            if (req.user.role.includes(['admin', 'super admin'])) {
+            if (adminRoles.includes(req.user.role)) {
                 if (!reference) {
                     return next(new APIError(
                         'reference is required', httpStatus.BAD_REQUEST, true
@@ -514,7 +515,7 @@ export default class UserValidator {
             const errMessages = [];
             for (let i = 0; i < expectedFileKeys.length; i++) {
                 if (!files[expectedFileKeys[i]]
-            || files[expectedFileKeys[i]].mimetype === 'text/plain') {
+                    || files[expectedFileKeys[i]].mimetype === 'text/plain') {
                     errMessages.push(`${expectedFileKeys[i]} is required`);
                 } else if (!(myFiles[i].mimetype === 'image/png'
                     || myFiles[i].mimetype === 'image/jpeg')) {
@@ -711,7 +712,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateUsersCount(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -737,7 +738,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateDriversCount(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -763,7 +764,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateOnlineDrivers(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -789,7 +790,7 @@ export default class UserValidator {
      * @memberof User
      */
     static async validateUserUpdate(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));

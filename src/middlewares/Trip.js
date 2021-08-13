@@ -4,6 +4,7 @@ import messages from '../utils/messages';
 import { debug } from '../config/logger';
 import TripService from '../services/TripService';
 import Helper from '../utils/helpers/Helper';
+import adminRoles from '../config/constants';
 
 const log = debug('app:onboarding-middleware');
 
@@ -61,7 +62,7 @@ export default class Trip {
      * @memberof Trip
      */
     static async validateTripsCount(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));
@@ -119,7 +120,7 @@ export default class Trip {
     //  * @memberof Trip
     //  */
     // static async validateCurrentTripsCount(req, res, next) {
-    //     if (!req.user.role.includes(['admin', 'super admin'])) {
+    //     if (!adminRoles.includes(req.user.role)) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -145,7 +146,7 @@ export default class Trip {
     //  * @memberof Trip
     //  */
     // static async validateTripsCountByDate(req, res, next) {
-    //     if (!req.user.role.includes(['admin', 'super admin'])) {
+    //     if (!adminRoles.includes(req.user.role)) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -192,7 +193,7 @@ export default class Trip {
      * @memberof Trip
      */
     static async validateGetTrips(req, res, next) {
-        if (!req.user.role.includes(['admin', 'super admin'])) {
+        if (!adminRoles.includes(req.user.role)) {
             return next(new APIError(
                 messages.unauthorized, httpStatus.UNAUTHORIZED, true
             ));

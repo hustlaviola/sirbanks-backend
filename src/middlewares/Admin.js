@@ -222,7 +222,7 @@ export default class Admin {
     //  */
     // static async validateGetTrips(req, res, next) {
     //     const { userId } = req.params;
-    //     if (!req.user.role.includes(['admin', 'super admin'])) {
+    //     if (!adminRoles.includes(req.user.role)) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
@@ -251,7 +251,7 @@ export default class Admin {
     //  */
     // static async validateGetTrip(req, res, next) {
     //     const { userId } = req.params;
-    //     if (!req.user.role.includes(['admin', 'super admin'])) {
+    //     if (!adminRoles.includes(req.user.role)) {
     //         return next(new APIError(
     //             messages.unauthorized, httpStatus.UNAUTHORIZED, true
     //         ));
