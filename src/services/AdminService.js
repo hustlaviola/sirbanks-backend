@@ -332,4 +332,109 @@ export default class AdminService {
         };
         return adminDTO;
     }
+
+    /**
+     * @method searchDrivers
+     * @description
+     * @static
+     * @param {object} query
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static searchDrivers(query) {
+        return Driver.aggregate([
+            {
+                $match: {
+                    $or: [
+                        {
+                            firstName: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        },
+                        {
+                            lastName: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        },
+                        {
+                            email: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    id: '$_id',
+                    firstName: 1,
+                    lastName: 1,
+                    email: 1,
+                    isActive: 1,
+                    isVerified: 1
+                }
+            }
+        ]);
+    }
+
+    /**
+     * @method searchRiders
+     * @description
+     * @static
+     * @param {object} query
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static searchRiders(query) {
+        return Rider.aggregate([
+            {
+                $match: {
+                    $or: [
+                        {
+                            firstName: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        },
+                        {
+                            lastName: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        },
+                        {
+                            email: {
+                                $regex: new RegExp(query),
+                                $options: 'i'
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    id: '$_id',
+                    firstName: 1,
+                    lastName: 1,
+                    email: 1
+                }
+            }
+        ]);
+    }
+
+    /**
+     * @method getRidersCount
+     * @description
+     * @static
+     * @returns {object} JSON response
+     * @memberof AdminService
+     */
+    static getRidersCount() {
+        return Rider.countDocuments();
+    }
 }

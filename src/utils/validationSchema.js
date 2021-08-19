@@ -569,6 +569,12 @@ const validator = method => {
                 .isNumeric()
                 .withMessage('please provide a valid amount')
         ];
+    case 'query':
+        return [
+            query('query')
+                .exists()
+                .withMessage('query is required')
+        ];
         // case 'get_users':
         //     return [
         //         param('role')

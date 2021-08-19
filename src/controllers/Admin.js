@@ -239,6 +239,45 @@ export default class AdminController {
         return response(res, httpStatus.OK, 'driver verified successfully');
     }
 
+    /**
+     * @method searchDrivers
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static searchDrivers(req, res) {
+        return response(res, httpStatus.OK, 'Drivers retrieved successfully', req.payload);
+    }
+
+    /**
+     * @method searchRiders
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static searchRiders(req, res) {
+        return response(res, httpStatus.OK, 'Riders retrieved successfully', req.payload);
+    }
+
+    /**
+     * @method getRidersCount
+     * @description
+     * @static
+     * @param {object} req - Request object
+     * @param {object} res - Response object
+     * @returns {object} JSON response
+     * @memberof Admin
+     */
+    static getRidersCount(req, res) {
+        return response(res, httpStatus.OK, 'Riders count retrieved successfully', req.payload);
+    }
+
     // /**
     //  * @method AddCars
     //  * @description

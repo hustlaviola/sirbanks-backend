@@ -20,6 +20,13 @@ router.get('/drivers',
     AdminMiddleware.validateGetUsers,
     AdminController.getUsers);
 
+router.get('/drivers/search',
+    AuthValidator.userAuth,
+    validator('query'),
+    validate,
+    AdminMiddleware.searchDrivers,
+    AdminController.searchDrivers);
+
 router.get('/drivers/:userId',
     AuthValidator.userAuth,
     validator('userId'),
@@ -85,6 +92,18 @@ router.get('/riders',
     AuthValidator.userAuth,
     AdminMiddleware.validateGetUsers,
     AdminController.getUsers);
+
+router.get('/riders/count',
+    AuthValidator.userAuth,
+    AdminMiddleware.getRidersCount,
+    AdminController.getRidersCount);
+
+router.get('/riders/search',
+    AuthValidator.userAuth,
+    validator('query'),
+    validate,
+    AdminMiddleware.searchRiders,
+    AdminController.searchRiders);
 
 router.get('/riders/:userId',
     AuthValidator.userAuth,
