@@ -120,7 +120,10 @@ export default class AdminService {
             lastName: user.lastName,
             email: user.email,
             phone: user.phone,
-            avatar: user.avatar
+            avatar: user.avatar,
+            isVerified: user.isVerified,
+            vehicleDetails: user.vehicleDetails,
+            isActive: user.isActive
         }));
         return usersDTO;
     }
