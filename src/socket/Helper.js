@@ -171,7 +171,10 @@ export default class Helper {
         log('driver id =======', driver._id);
         if (clients[driver._id]) {
             clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
-            HelperUtil.sendPNToDevice(driver.device.token, 'ARRIVED', 'Driver has reached your location').catch(err => log(err));
+            if (driver.device && driver.device.token) {
+                HelperUtil.sendPNToDevice(driver.device.token, 'Ride request', 'you have a ride request request');
+                log('Sent Push notification');
+            }
             log(`Sent request to: ${driver.firstName} id: ${driver._id}`);
             pendingRequests[tripRequest.tripId] = setInterval(() => {
                 quantum--;

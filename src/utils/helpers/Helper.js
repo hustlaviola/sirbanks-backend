@@ -277,7 +277,7 @@ export default class Helper {
             },
             token
         };
-        return admin.messaging().send(message);
+        admin.messaging().send(message);
     }
 
     /**
