@@ -172,7 +172,7 @@ export default class Helper {
         if (clients[driver._id]) {
             clients[driver._id].emit(RIDE_REQUEST, JSON.stringify(tripRequest));
             if (driver.device && driver.device.token) {
-                HelperUtil.sendPNToDevice(driver.device.token, 'Ride request', 'you have a ride request request');
+                // HelperUtil.sendPNToDevice(driver.device.token, 'Ride request', 'you have a ride request request');
                 log('Sent Push notification');
             }
             log(`Sent request to: ${driver.firstName} id: ${driver._id}`);

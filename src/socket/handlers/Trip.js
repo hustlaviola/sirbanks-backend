@@ -332,8 +332,9 @@ export default class TripHandler {
                 const driverLon = drivers[0].location.coordinates[0];
                 const driverLat = drivers[0].location.coordinates[1];
                 let driverResult = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
-                log('driverResult', driverResult);
                 driverResult = await driverResult.json();
+                log(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${driverLat},${driverLon}&key=${GOOGLE_MAPS_API_KEY}`);
+                log('driverResult', driverResult);
                 if (driverResult.status === 'OK') {
                     const driverResponse = driverResult.rows[0].elements[0];
                     const driverDurationDistance = await Helper.getDurationAndDistance(
@@ -536,6 +537,7 @@ export default class TripHandler {
             rider.currentTripId = trip._id;
             let result = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&mode=driving&departure_time=now&origins=${pickUpLat},${pickUpLon}&destinations=${dropOffLat},${dropOffLon}&key=${GOOGLE_MAPS_API_KEY}`);
             result = await result.json();
+            log(`FROM GOOGLE MAPS ${JSON.stringify(result)}`);
             let duration;
             let distance;
             let estimatedFare;
