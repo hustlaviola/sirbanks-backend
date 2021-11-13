@@ -495,8 +495,7 @@ export default class TripHandler {
             if (!validator.isUUID(tripId)) {
                 return socket.emit(ERROR, 'Invalid tripId');
             }
-            // log(`pending ===== ${JSON.stringify(pendingRequests)} reqStatus ===== ${JSON.stringify(reqStatus)} allTripRequests ======${allTripRequests} `);
-            // log(`pending ===== ${pendingRequests[tripId]} reqStatus ===== ${reqStatus[tripId]} allTripRequests ======${allTripRequests[tripId]} nothing ${allTripRequests.heee}`);
+
             log(!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]);
             if (!pendingRequests[tripId] || !reqStatus[tripId] || !allTripRequests[tripId]) {
                 return socket.emit(ERROR, 'The trip request you accepted was not found');

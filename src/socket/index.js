@@ -15,7 +15,9 @@ import {
     PRIVATE_MESSAGE,
     CANCEL_TRIP,
     UPDATE_DESTINATION,
-    GET_TRIP_DETAILS
+    GET_TRIP_DETAILS,
+    START_TRIP,
+    END_TRIP
 } from './events';
 
 export const clients = {};
@@ -70,6 +72,10 @@ export default class SocketServer {
             socket.on(REJECT_REQUEST, data => TripHandler.requestRejected(socket, data));
 
             socket.on(CANCEL_TRIP, data => TripHandler.cancelTrip(socket, data));
+
+            socket.on(START_TRIP, data => TripHandler.startTrip(socket, data));
+
+            socket.on(END_TRIP, data => TripHandler.endTrip(socket, data));
 
             socket.on(UPDATE_DESTINATION, data => TripHandler.updateDestination(socket, data));
 
